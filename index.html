@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rezervační nástěnka</title>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  font-family: "Inter", Arial, sans-serif;
+  background: #f3f5f9;
+  color: #222;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; }
+
+.topbar {
+  background: white;
+  padding: 10px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.08);
+}
+.logo-wrap img {
+  height: 38px;
+  width: auto;
+}
+.topbar-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 480px;
+}
+.topbar-bottom h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+.btn-primary {
+  background: #2b7cff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 24px auto;
+  padding: 0 16px;
+}
+.card {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.card.green { background: #e6f7e6; }
+.card-info {
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.icon-btn {
+  background: #eef1f6;
+  border: none;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.check-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+.check-wrapper input {
+  width: 18px;
+  height: 18px;
+  accent-color: #2b7cff;
+}
+
+.modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+}
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 16px;
+  width: 92%;
+  max-width: 420px;
+}
+.modal h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  font-weight: 600;
+}
+input, select {
+  width: 100%;
+  padding: 10px 11px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  border: 1px solid #d5d9e0;
+  background: #fafbfc;
+  font-size: 14px;
+}
+.phone-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+.phone-row select { width: 38%; }
+.phone-row input { width: 62%; }
+.btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.btn-close {
+  background: #ccc;
+  color: #222;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.name-option {
+  padding: 9px 11px;
+  background: #f5f7fa;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.name-option:hover { background: #e6eefc; }
+
+.day-selector {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+.day-btn {
+  background: white;
+  border: 1px solid #ddd;
+  padding: 8px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 68px;
+  text-align: center;
+  font-size: 12px;
+}
+.day-btn.selected {
+  background: #2b7cff;
+  color: white;
+  border-color: #2b7cff;
+}
+.weekend {
+  background: #fff4e6;
+  border-color: #ffb366;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="logo-wrap">
+    <img src="https://www.stopcars.cz/wp-content/uploads/2024/08/stop_cars-logo_ok.svg" alt="StopCars logo">
+  </div>
+  <div class="topbar-bottom">
+    <h1>Rezervační nástěnka</h1>
+    <button class="btn-primary" onclick="openCreateModal()">+ Přidat rezervaci</button>
+  </div>
+</div>
+
+<div class="container" id="cardsContainer"></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h2 id="modalTitle">Nová rezervace</h2>
+
+    <div class="day-selector" id="daySelector"></div>
+
+    <input type="time" id="timeInput">
+    <input type="text" id="nameInput" placeholder="Jméno zákazníka">
+
+    <div class="phone-row">
+      <select id="prefix">
+        <option value="+420" selected>🇨🇿 +420</option>
+        <option value="+421">🇸🇰 +421</option>
+        <option value="+43">🇦🇹 +43</option>
+        <option value="+49">🇩🇪 +49</option>
+        <option value="+36">🇭🇺 +36</option>
+        <option value="+370">🇱Ť +370</option>
+      </select>
+      <input type="number" id="phoneInput" placeholder="Telefon">
+    </div>
+
+    <input type="email" id="emailInput" placeholder="E‑mail (volitelné)">
+    <input type="text" id="carInput" placeholder="Vozidlo">
+    <input type="number" id="evcInput" min="1" max="250" placeholder="Evidenční číslo (1–250)">
+
+    <div id="editControlRow" style="margin-bottom: 6px;"></div>
+
+    <div class="btn-row">
+      <button class="btn-close" onclick="closeModal()">Zavřít</button>
+      <button class="btn-primary" onclick="saveReservation()">Uložit</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="nameSelectModal">
+  <div class="modal">
+    <h2>Vyber technika</h2>
+
+    <div class="name-option" onclick="selectTechnician('Martin Brázda')">Martin Brázda</div>
+    <div class="name-option" onclick="selectTechnician('Martin Vlasák')">Martin Vlasák</div>
+    <div class="name-option" onclick="selectTechnician('Miroslav Lašák')">Miroslav Lašák</div>
+    <div class="name-option" onclick="selectTechnician('Michal Nasadil')">Michal Nasadil</div>
+    <div class="name-option" onclick="selectTechnician('Roman Vlasák')">Roman Vlasák</div>
+    <div class="name-option" onclick="selectTechnician('Štěpán Vespalec')">Štěpán Vespalec</div>
+
+    <div class="btn-row">
+      <button class="btn-close" onclick="closeNameSelect()">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editId = null;
+let pendingSaveData = null;
+let selectingForCreation = false;
+let changingControl = false;
+
+function getReservations() {
+  return JSON.parse(localStorage.getItem("reservations") || "[]");
+}
+function setReservations(list) {
+  localStorage.setItem("reservations", JSON.stringify(list));
+}
+
+function formatDate(dateStr, timeStr) {
+  const d = new Date(dateStr + "T" + timeStr);
+  if (isNaN(d.getTime())) return `${dateStr} — ${timeStr}`;
+  const days = ["Neděle","Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota"];
+  const months = ["ledna","února","března","dubna","května","června","července","srpna","září","října","listopadu","prosince"];
+  return `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]} — ${timeStr}`;
+}
+
+function openCreateModal() {
+  editId = null;
+  pendingSaveData = null;
+  selectingForCreation = false;
+  changingControl = false;
+
+  document.getElementById("modalTitle").innerText = "Nová rezervace";
+  document.getElementById("modal").style.display = "flex";
+
+  document.querySelectorAll("#modal input").forEach(i => i.value = "");
+  document.getElementById("prefix").value = "+420";
+  document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("selected"));
+  document.getElementById("editControlRow").innerHTML = "";
+}
+
+function openEditModal(id) {
+  const r = getReservations().find(x => x.id === id);
+  if (!r) return;
+
+  editId = id;
+  pendingSaveData = null;
+  selectingForCreation = false;
+  changingControl = false;
+
+  document.getElementById("modalTitle").innerText = "Upravit rezervaci";
+  document.getElementById("modal").style.display = "flex";
+
+  document.getElementById("timeInput").value = r.time;
+  document.getElementById("nameInput").value = r.name;
+  document.getElementById("prefix").value = r.prefix;
+  document.getElementById("phoneInput").value = r.phone;
+  document.getElementById("emailInput").value = r.email;
+  document.getElementById("carInput").value = r.car;
+  document.getElementById("evcInput").value = r.evc;
+
+  document.querySelectorAll(".day-btn").forEach(b => {
+    b.classList.toggle("selected", b.dataset.date === r.date);
+  });
+
+  const row = document.getElementById("editControlRow");
+  row.innerHTML = "";
+  if (r.checked && r.controlTechnician) {
+    row.innerHTML = `
+      <strong>Kontrolu provedl:</strong> ${r.controlTechnician}<br>
+      <button class="btn-primary" style="margin-top:4px;" onclick="startChangeControl('${r.id}')">
+        Změnit technika kontroly
+      </button>
+    `;
+  }
+}
+
+function startChangeControl(id) {
+  const r = getReservations().find(x => x.id === id);
+  if (!r) return;
+  pendingSaveData = { ...r };
+  selectingForCreation = false;
+  changingControl = true;
+  openNameSelect();
+}
+
+function closeModal() {
+  document.getElementById("modal").style.display = "none";
+}
+
+function validateForm(data) {
+  const phoneLengths = {"+420":9,"+421":9,"+43":10,"+49":10,"+36":9,"+370":8};
+  if (!data.date || !data.time || !data.name || !data.car || isNaN(data.evc)) {
+    alert("Vyplň datum, čas, jméno, vozidlo a evidenční číslo.");
+    return false;
+  }
+  if (data.phone.length !== phoneLengths[data.prefix]) {
+    alert("Telefon musí mít " + phoneLengths[data.prefix] + " číslic.");
+    return false;
+  }
+  if (data.email && (!data.email.includes("@") || !data.email.includes("."))) {
+    alert("E‑mail musí obsahovat '@' a '.'.");
+    return false;
+  }
+  if (data.evc < 1 || data.evc > 250) {
+    alert("Evidenční číslo musí být 1–250.");
+    return false;
+  }
+  return true;
+}
+
+function saveReservation() {
+  const selectedDay = document.querySelector(".day-btn.selected");
+  const date = selectedDay ? selectedDay.dataset.date : "";
+
+  const old = editId ? getReservations().find(r => r.id === editId) : {};
+
+  const data = {
+    date,
+    time: document.getElementById("timeInput").value,
+    name: document.getElementById("nameInput").value.trim(),
+    prefix: document.getElementById("prefix").value,
+    phone: document.getElementById("phoneInput").value.trim(),
+    email: document.getElementById("emailInput").value.trim(),
+    car: document.getElementById("carInput").value.trim(),
+    evc: parseInt(document.getElementById("evcInput").value.trim(), 10),
+    checked: old?.checked || false,
+    technician: old?.technician || null,
+    controlTechnician: old?.controlTechnician || null
+  };
+
+  if (!validateForm(data)) return;
+
+  pendingSaveData = data;
+
+  if (editId) {
+    finalizeSave(pendingSaveData);
+    pendingSaveData = null;
+    return;
+  }
+
+  selectingForCreation = true;
+  changingControl = false;
+  openNameSelect();
+}
+
+function finalizeSave(data) {
+  let list = getReservations();
+
+  if (editId) {
+    list = list.map(r => r.id === editId ? { ...data, id: editId } : r);
+  } else {
+    list.push({ ...data, id: Date.now().toString() });
+  }
+
+  setReservations(list);
+  renderReservations();
+  closeModal();
+}
+
+function openNameSelect() {
+  document.getElementById("nameSelectModal").style.display = "flex";
+}
+function closeNameSelect() {
+  document.getElementById("nameSelectModal").style.display = "none";
+}
+
+function selectTechnician(name) {
+  if (!pendingSaveData) return;
+
+  if (selectingForCreation) {
+    pendingSaveData.technician = name;
+    finalizeSave(pendingSaveData);
+  } else if (changingControl) {
+    pendingSaveData.checked = true;
+    pendingSaveData.controlTechnician = name;
+
+    let list = getReservations();
+    list = list.map(r => r.id === pendingSaveData.id ? { ...pendingSaveData } : r);
+    setReservations(list);
+    renderReservations();
+  }
+
+  pendingSaveData = null;
+  selectingForCreation = false;
+  changingControl = false;
+  closeNameSelect();
+}
+
+function deleteCard(id) {
+  if (!confirm("Opravdu chceš smazat tuto kartu?")) return;
+  let list = getReservations().filter(r => r.id !== id);
+  setReservations(list);
+  renderReservations();
+}
+
+function toggleControl(id) {
+  const r = getReservations().find(x => x.id === id);
+  if (!r || r.checked) return;
+  pendingSaveData = { ...r };
+  selectingForCreation = false;
+  changingControl = true;
+  openNameSelect();
+}
+
+function renderReservations() {
+  const container = document.getElementById("cardsContainer");
+  container.innerHTML = "";
+
+  let list = getReservations();
+  list.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+
+  list.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "card";
+    if (r.checked) card.classList.add("green");
+
+    const formattedDate = formatDate(r.date, r.time);
+    const checkboxHTML = r.checked ? "" : `
+      <label class="check-wrapper">
+        <input type="checkbox">
+        <span>Kontrola provedena</span>
+      </label>
+    `;
+
+    card.innerHTML = `
+      <div class="card-info">
+        <strong>📅 ${formattedDate}</strong><br>
+        👤 ${r.name}<br>
+        📞 ${r.prefix} ${r.phone}<br>
+        ${r.email ? `✉️ ${r.email}<br>` : ""}
+        🚗 ${r.car}<br>
+        Evidenční číslo: <strong>${r.evc}</strong>
+        ${r.technician ? `<br><br>📝 Kartu vytvořil: <strong>${r.technician}</strong>` : ""}
+        ${r.controlTechnician ? `<br>✅ Kontrolu provedl: <strong>${r.controlTechnician}</strong>` : ""}
+        ${checkboxHTML}
+      </div>
+      <div class="actions">
+        <button class="icon-btn edit-btn">✏️</button>
+        <button class="icon-btn delete-btn">🗑️</button>
+      </div>
+    `;
+
+    if (!r.checked) {
+      card.querySelector("input[type='checkbox']").addEventListener("change", () => toggleControl(r.id));
+    }
+
+    card.querySelector(".edit-btn").onclick = () => openEditModal(r.id);
+    card.querySelector(".delete-btn").onclick = () => deleteCard(r.id);
+
+    container.appendChild(card);
+  });
+}
+
+const daySelector = document.getElementById("daySelector");
+const days = ["Ne","Po","Út","St","Čt","Pá","So"];
+let totalDaysGenerated = 0;
+
+function generateDays(count) {
+  const today = new Date();
+  while (count-- > 0 && totalDaysGenerated < 14) {
+    const d = new Date();
+    d.setDate(today.getDate() + totalDaysGenerated);
+
+    const btn = document.createElement("div");
+    btn.className = "day-btn";
+    btn.dataset.date = d.toISOString().split("T")[0];
+    btn.innerHTML = `${days[d.getDay()]}<br><strong>${d.getDate()}</strong>`;
+
+    if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add("weekend");
+
+    btn.onclick = () => {
+      document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+    };
+
+    daySelector.appendChild(btn);
+    totalDaysGenerated++;
+  }
+}
+
+generateDays(7);
+daySelector.addEventListener("scroll", () => {
+  if (daySelector.scrollLeft + daySelector.clientWidth >= daySelector.scrollWidth - 5) {
+    generateDays(7);
+  }
+});
+
+renderReservations();
+</script>
+
+</body>
+</html>
