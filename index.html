@@ -11,185 +11,440 @@ html, body {
   width: 100%;
   overflow-x: hidden;
   font-family: "Inter", Arial, sans-serif;
-  background: #f3f5f9;
+  background: linear-gradient(to bottom,#ffffff 0%,#f3f5f9 15%,#eef1f5 50%,#f3f5f9 85%,#ffffff 100%);
+  min-height: 100vh;
   color: #222;
   box-sizing: border-box;
 }
 *, *::before, *::after { box-sizing: inherit; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(25px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-25px);} to{opacity:1;transform:translateY(0);} }
+@keyframes scaleIn { from{transform:scale(0.92);opacity:0;} to{transform:scale(1);opacity:1;} }
+@keyframes successFlash { 0%{box-shadow:0 0 0 rgba(0,200,120,0);} 50%{box-shadow:0 0 22px rgba(0,200,120,0.45);} 100%{box-shadow:0 0 0 rgba(0,200,120,0);} }
+@keyframes editPulse { 0%{transform:scale(1);filter:brightness(1);} 40%{transform:scale(1.03);filter:brightness(1.12);} 100%{transform:scale(1);filter:brightness(1);} }
+.edit-highlight { animation: editPulse 0.45s ease-out; }
+@keyframes pulseJump { 0%{box-shadow:0 0 0 rgba(76,175,80,0);transform:scale(1);} 40%{box-shadow:0 0 18px rgba(76,175,80,0.7);transform:scale(1.015);} 100%{box-shadow:0 0 0 rgba(76,175,80,0);transform:scale(1);} }
+.jump-highlight { animation: pulseJump 1.2s ease-out; }
+.success-flash { animation: successFlash 1.4s ease-out; }
 
-.topbar {
-  background: white;
-  padding: 10px 16px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  box-shadow: 0 2px 14px rgba(0,0,0,0.08);
-}
-.logo-wrap img {
-  height: 38px;
-  width: auto;
-}
-.topbar-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 480px;
-}
-.topbar-bottom h1 {
-  margin: 0;
-  font-size: 18px;
+.duplicate-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  --badge-offset: 32px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
-}
-.btn-primary {
-  background: #2b7cff;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
+  color: #fff;
+  display: inline-block;
+  backdrop-filter: blur(4px);
+  text-transform: uppercase;
+  letter-spacing: .04em;
   cursor: pointer;
-  font-size: 14px;
+  z-index: 5;
+}
+@media (max-width:480px){
+  .duplicate-badge{
+    padding:3px 7px;
+    font-size:10px;
+    --badge-offset:26px;
+  }
+}
+.duplicate-badge::after{
+  content:attr(data-tooltip);
+  position:absolute;
+  bottom:-30px;
+  right:0;
+  background:rgba(0,0,0,.75);
+  color:#fff;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:11px;
+  white-space:nowrap;
+  opacity:0;
+  transform:translateY(4px);
+  pointer-events:none;
+  transition:opacity .2s ease,transform .2s ease;
+}
+.duplicate-badge:hover::after{opacity:1;transform:translateY(0);}
+
+.status-strip{
+  position:absolute;
+  left:0;
+  top:0;
+  width:8px;
+  height:100%;
+  border-radius:20px 0 0 20px;
+}
+.duplicate-dot{
+  position:absolute;
+  top:5px;
+  left:14px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
 }
 
-.container {
-  max-width: 1000px;
-  margin: 24px auto;
-  padding: 0 16px;
+.topbar{
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(12px);
+  padding:14px 18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  box-shadow:0 4px 22px rgba(0,0,0,.08);
+  animation:fadeDown .6s ease;
 }
-.card {
-  background: white;
-  padding: 16px;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-  margin-bottom: 16px;
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+.logo-wrap img{
+  height:46px;
+  width:auto;
+  max-width:100%;
 }
-.card.green { background: #e6f7e6; }
-.card-info {
-  font-size: 14px;
-  line-height: 1.7;
-  max-width: 100%;
-  word-wrap: break-word;
+.topbar-bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  width:100%;
+  max-width:480px;
 }
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.icon-btn {
-  background: #eef1f6;
-  border: none;
-  padding: 8px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
-.check-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  font-size: 13px;
-}
-.check-wrapper input {
-  width: 18px;
-  height: 18px;
-  accent-color: #2b7cff;
+.topbar-bottom h1{
+  margin:0;
+  font-size:22px;
+  font-weight:700;
+  background:linear-gradient(90deg,#2b7cff,#00c6ff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
 }
 
-.modal-bg {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.45);
-  justify-content: center;
-  align-items: center;
-  z-index: 20;
+.btn-primary{
+  background:linear-gradient(90deg,#2b7cff,#00c6ff);
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:15px;
+  font-weight:600;
+  transition:transform .25s ease,box-shadow .25s ease;
 }
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  width: 92%;
-  max-width: 420px;
-}
-.modal h2 {
-  margin: 0 0 14px;
-  font-size: 18px;
-  font-weight: 600;
-}
-input, select {
-  width: 100%;
-  padding: 10px 11px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  border: 1px solid #d5d9e0;
-  background: #fafbfc;
-  font-size: 14px;
-}
-.phone-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-}
-.phone-row select { width: 38%; }
-.phone-row input { width: 62%; }
-.btn-row {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 8px;
-}
-.btn-close {
-  background: #ccc;
-  color: #222;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 14px;
+.btn-primary:hover{
+  transform:translateY(-3px) scale(1.03);
+  box-shadow:0 6px 18px rgba(43,124,255,.45);
 }
 
-.name-option {
-  padding: 9px 11px;
-  background: #f5f7fa;
-  border-radius: 10px;
-  margin-bottom: 6px;
-  cursor: pointer;
-  font-size: 14px;
+.container{
+  max-width:1000px;
+  margin:32px auto;
+  padding:0 16px 32px;
 }
-.name-option:hover { background: #e6eefc; }
+.card{
+  position:relative;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  padding:calc(20px + var(--badge-offset,0px)) 20px 18px 24px;
+  border-radius:20px;
+  box-shadow:0 8px 26px rgba(0,0,0,.08);
+  margin-bottom:20px;
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  flex-wrap:nowrap;
+  opacity:0;
+  transform:translateY(25px);
+  animation:fadeUp .55s ease forwards;
+  transition:transform .25s ease,box-shadow .25s ease,background-color .25s ease,filter .2s ease;
+}
+@media(max-width:480px){
+  .card{
+    flex-direction:column;
+    gap:10px;
+    padding-right:16px;
+  }
+}
+.card.green{background-color:rgba(226,245,228,.95);}
+.card.duplicate-hover{filter:brightness(1.03);}
 
-.day-selector {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 10px;
+.card-info{
+  font-size:15px;
+  line-height:1.75;
+  flex:1;
+  word-break:keep-all;
+  white-space:normal;
 }
-.day-btn {
-  background: white;
-  border: 1px solid #ddd;
-  padding: 8px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  min-width: 68px;
-  text-align: center;
-  font-size: 12px;
+
+.actions{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:12px;
+  margin-left:12px;
 }
-.day-btn.selected {
-  background: #2b7cff;
-  color: white;
-  border-color: #2b7cff;
+.icon-btn{
+  background:#eef1f6;
+  border:none;
+  padding:10px 12px;
+  border-radius:14px;
+  cursor:pointer;
+  font-size:18px;
+  transition:transform .25s ease,background .25s ease;
 }
-.weekend {
-  background: #fff4e6;
-  border-color: #ffb366;
+.icon-btn:hover{
+  background:#dce3f0;
+  transform:scale(1.12);
 }
+
+.check-wrapper{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+  font-size:14px;
+}
+.check-wrapper input{
+  width:20px;
+  height:20px;
+  accent-color:#2b7cff;
+}
+
+.day-badge{
+  position:absolute;
+  top:4px;
+  right:4px;
+  min-width:20px;
+  height:20px;
+  padding:0 6px;
+  border-radius:50%;
+  border:2px solid #2b7cff;
+  background:#fff;
+  color:#2b7cff;
+  font-size:11px;
+  font-weight:700;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.day-duplicate-dot{
+  position:absolute;
+  left:4px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  font-size:9px;
+  font-weight:700;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  pointer-events:none;
+}
+
+.top-calendar-wrapper{
+  width:100%;
+  max-width:1000px;
+  margin:8px auto 0;
+  padding:0 16px;
+}
+.top-calendar-label{
+  font-size:13px;
+  opacity:.7;
+  margin:2px 2px 4px;
+}
+.top-day-selector{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding:8px 2px 6px;
+  -webkit-overflow-scrolling:touch;
+}
+.top-day-selector::-webkit-scrollbar{height:12px;}
+.top-day-selector::-webkit-scrollbar-thumb{
+  background:rgba(0,0,0,.15);
+  border-radius:999px;
+}
+.top-day-selector::-webkit-scrollbar-thumb:hover{
+  background: rgba(0,0,0,0.35);
+}
+
+@keyframes wowBounce{
+  0%{transform:translateY(0) scale(1);box-shadow:0 10px 25px rgba(0,0,0,.18);}
+  40%{transform:translateY(-4px) scale(1.04);box-shadow:0 16px 32px rgba(0,0,0,.25);}
+  100%{transform:translateY(-2px) scale(1.02);box-shadow:0 12px 26px rgba(0,0,0,.2);}
+}
+.top-day-btn{
+  position:relative;
+  min-width:70px;
+  padding:8px 10px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#ffffff,#e5ebf7);
+  border:1px solid rgba(180,190,210,.9);
+  box-shadow:0 10px 20px rgba(15,23,42,.18),0 1px 0 rgba(255,255,255,.9) inset;
+  text-align:center;
+  font-size:12px;
+  cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+.top-day-btn strong{display:block;font-size:14px;}
+.top-day-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 14px 24px rgba(15,23,42,.22),0 1px 0 rgba(255,255,255,.95) inset;
+}
+.top-day-btn.top-weekend{
+  background:linear-gradient(145deg,#fff6e9,#ffe0b8);
+  border-color:#ffb366;
+}
+.top-day-btn.top-selected{
+  background:linear-gradient(145deg,#2b7cff,#00c6ff);
+  color:#fff;
+  border-color:rgba(255,255,255,.8);
+  box-shadow:0 16px 30px rgba(0,76,175,.45),0 1px 0 rgba(255,255,255,.9) inset;
+  animation:wowBounce .35s ease-out;
+}
+.top-day-btn.top-selected .day-badge{
+  border-color:#fff;
+  color:#2b7cff;
+}
+
+.modal-bg{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  justify-content:center;
+  align-items:center;
+  z-index:20;
+}
+.modal{
+  background:rgba(255,255,255,.98);
+  backdrop-filter:blur(16px);
+  padding:22px;
+  border-radius:20px;
+  width:92%;
+  max-width:420px;
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+  animation:scaleIn .4s ease;
+}
+.modal h2{
+  margin:0 0 14px;
+  font-size:19px;
+  font-weight:600;
+}
+
+input,select{
+  width:100%;
+  padding:10px 11px;
+  margin-bottom:10px;
+  border-radius:10px;
+  border:1px solid #d5d9e0;
+  background:rgba(250,251,252,.95);
+  font-size:14px;
+  transition:border .2s ease,box-shadow .2s ease,background .2s ease;
+}
+input:focus,select:focus{
+  border-color:#2b7cff;
+  background:#fff;
+  box-shadow:0 0 0 2px rgba(43,124,255,.22);
+  outline:none;
+}
+.input-error{
+  border-color:#e53935!important;
+  box-shadow:0 0 0 2px rgba(229,57,53,.18)!important;
+}
+
+.phone-row{
+  display:flex;
+  gap:8px;
+  width:100%;
+}
+.phone-row select{width:38%;}
+.phone-row input{width:62%;}
+
+.btn-row{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  margin-top:8px;
+}
+.btn-close{
+  background:#c9ced6;
+  color:#222;
+  border:none;
+  padding:8px 14px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:14px;
+  transition:background .2s ease,transform .2s ease;
+}
+.btn-close:hover{
+  background:#b8bdc7;
+  transform:translateY(-1px);
+}
+
+.name-option{
+  padding:9px 11px;
+  background:#f5f7fa;
+  border-radius:10px;
+  margin-bottom:6px;
+  cursor:pointer;
+  font-size:14px;
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease;
+}
+.name-option:hover{
+  background:#e6eefc;
+  transform:translateX(4px);
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.filter-info{
+  max-width:1000px;
+  margin:4px auto 0;
+  padding:0 16px;
+  font-size:13px;
+  opacity:.7;
+}
+.filter-info strong{font-weight:600;}
+
+.day-selector{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:8px;
+  margin-bottom:10px;
+}
+.day-selector::-webkit-scrollbar{height:10px;}
+.day-selector::-webkit-scrollbar-thumb{
+  background:rgba(0,0,0,.16);
+  border-radius:999px;
+}
+.day-btn{
+  position:relative;
+  background:rgba(255,255,255,.95);
+  border:1px solid #ddd;
+  padding:8px 10px;
+  border-radius:12px;
+  cursor:pointer;
+  min-width:68px;
+  text-align:center;
+  font-size:12px;
+  transition:background .2s ease,transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.day-btn:hover{
+  transform:translateY(-2px) scale(1.05);
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+.day-btn.selected{
+  background:linear-gradient(90deg,#2b7cff,#00c6ff);
+  color:#fff;
+  border-color:#2b7cff;
+}
+.weekend{
+  background:#fff4e6;
+  border-color:#ffb366;
+}
+
+
 </style>
 </head>
 
@@ -205,35 +460,38 @@ input, select {
   </div>
 </div>
 
+<div class="top-calendar-wrapper">
+  <div class="top-calendar-label">Rezervace na příštích 14 dní</div>
+  <div class="top-day-selector" id="topDaySelector"></div>
+</div>
+
+<div class="filter-info" id="filterInfo" style="display:none;">
+  Filtrováno podle dne: <strong id="filterLabel"></strong> – kliknutím na stejný den filtr zrušíš.
+</div>
+
 <div class="container" id="cardsContainer"></div>
 
 <div class="modal-bg" id="modal">
   <div class="modal">
     <h2 id="modalTitle">Nová rezervace</h2>
-
     <div class="day-selector" id="daySelector"></div>
-
     <input type="time" id="timeInput">
     <input type="text" id="nameInput" placeholder="Jméno zákazníka">
-
     <div class="phone-row">
       <select id="prefix">
         <option value="+420" selected>🇨🇿 +420</option>
         <option value="+421">🇸🇰 +421</option>
-        <option value="+43">🇦🇹 +43</option>
+        <option value="+43">🇦Ť +43</option>
         <option value="+49">🇩🇪 +49</option>
         <option value="+36">🇭🇺 +36</option>
         <option value="+370">🇱Ť +370</option>
       </select>
       <input type="number" id="phoneInput" placeholder="Telefon">
     </div>
-
     <input type="email" id="emailInput" placeholder="E‑mail (volitelné)">
     <input type="text" id="carInput" placeholder="Vozidlo">
     <input type="number" id="evcInput" min="1" max="250" placeholder="Evidenční číslo (1–250)">
-
-    <div id="editControlRow" style="margin-bottom: 6px;"></div>
-
+    <div id="editControlRow" style="margin-bottom:6px;"></div>
     <div class="btn-row">
       <button class="btn-close" onclick="closeModal()">Zavřít</button>
       <button class="btn-primary" onclick="saveReservation()">Uložit</button>
@@ -244,14 +502,12 @@ input, select {
 <div class="modal-bg" id="nameSelectModal">
   <div class="modal">
     <h2>Vyber technika</h2>
-
     <div class="name-option" onclick="selectTechnician('Martin Brázda')">Martin Brázda</div>
     <div class="name-option" onclick="selectTechnician('Martin Vlasák')">Martin Vlasák</div>
     <div class="name-option" onclick="selectTechnician('Miroslav Lašák')">Miroslav Lašák</div>
     <div class="name-option" onclick="selectTechnician('Michal Nasadil')">Michal Nasadil</div>
     <div class="name-option" onclick="selectTechnician('Roman Vlasák')">Roman Vlasák</div>
     <div class="name-option" onclick="selectTechnician('Štěpán Vespalec')">Štěpán Vespalec</div>
-
     <div class="btn-row">
       <button class="btn-close" onclick="closeNameSelect()">Zavřít</button>
     </div>
@@ -263,20 +519,38 @@ let editId = null;
 let pendingSaveData = null;
 let selectingForCreation = false;
 let changingControl = false;
+let lastSavedId = null;
+let activeFilterDate = null;
 
 function getReservations() {
-  return JSON.parse(localStorage.getItem("reservations") || "[]");
+  return JSON.parse(localStorage.getItem('reservations') || '[]');
 }
 function setReservations(list) {
-  localStorage.setItem("reservations", JSON.stringify(list));
+  localStorage.setItem('reservations', JSON.stringify(list));
 }
 
 function formatDate(dateStr, timeStr) {
-  const d = new Date(dateStr + "T" + timeStr);
-  if (isNaN(d.getTime())) return `${dateStr} — ${timeStr}`;
-  const days = ["Neděle","Pondělí","Úterý","Středa","Čtvrtek","Pátek","Sobota"];
-  const months = ["ledna","února","března","dubna","května","června","července","srpna","září","října","listopadu","prosince"];
-  return `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]} — ${timeStr}`;
+  const d = new Date(dateStr + 'T' + timeStr);
+  if (isNaN(d.getTime())) return dateStr + ' — ' + timeStr;
+  const days = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+  const months = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+  return days[d.getDay()] + ' ' + d.getDate() + '. ' + months[d.getMonth()] + ' — ' + timeStr;
+}
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  if (isNaN(d.getTime())) return dateStr;
+  const days = ['Ne','Po','Út','St','Čt','Pá','So'];
+  const months = ['1','2','3','4','5','6','7','8','9','10','11','12'];
+  return days[d.getDay()] + ' ' + d.getDate() + '. ' + months[d.getMonth()] + '.';
+}
+function getColorForEvc(evc) {
+  if (!evc && evc !== 0) return null;
+  const str = String(evc);
+  let hash = 0;
+  for (let i=0;i<str.length;i++) hash = str.charCodeAt(i)+((hash<<5)-hash);
+  let hue = Math.abs(hash)%360;
+  if (hue>=90 && hue<=150) hue = (hue+120)%360;
+  return 'hsl(' + hue + ', 75%, 55%)';
 }
 
 function openCreateModal() {
@@ -284,116 +558,144 @@ function openCreateModal() {
   pendingSaveData = null;
   selectingForCreation = false;
   changingControl = false;
-
-  document.getElementById("modalTitle").innerText = "Nová rezervace";
-  document.getElementById("modal").style.display = "flex";
-
-  document.querySelectorAll("#modal input").forEach(i => i.value = "");
-  document.getElementById("prefix").value = "+420";
-  document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("selected"));
-  document.getElementById("editControlRow").innerHTML = "";
+  document.getElementById('modalTitle').innerText = 'Nová rezervace';
+  document.getElementById('modal').style.display = 'flex';
+  document.querySelectorAll('#modal input').forEach(function(i){
+    i.value = '';
+    i.classList.remove('input-error');
+  });
+  document.getElementById('prefix').value = '+420';
+  document.querySelectorAll('#daySelector .day-btn').forEach(function(b){ b.classList.remove('selected'); });
+  document.getElementById('editControlRow').innerHTML = '';
+  if (activeFilterDate) {
+    var btn = document.querySelector('#daySelector .day-btn[data-date="' + activeFilterDate + '"]');
+    if (btn) btn.classList.add('selected');
+  }
 }
 
 function openEditModal(id) {
-  const r = getReservations().find(x => x.id === id);
+  const r = getReservations().find(function(x){return x.id === id;});
   if (!r) return;
-
   editId = id;
   pendingSaveData = null;
   selectingForCreation = false;
   changingControl = false;
-
-  document.getElementById("modalTitle").innerText = "Upravit rezervaci";
-  document.getElementById("modal").style.display = "flex";
-
-  document.getElementById("timeInput").value = r.time;
-  document.getElementById("nameInput").value = r.name;
-  document.getElementById("prefix").value = r.prefix;
-  document.getElementById("phoneInput").value = r.phone;
-  document.getElementById("emailInput").value = r.email;
-  document.getElementById("carInput").value = r.car;
-  document.getElementById("evcInput").value = r.evc;
-
-  document.querySelectorAll(".day-btn").forEach(b => {
-    b.classList.toggle("selected", b.dataset.date === r.date);
+  document.getElementById('modalTitle').innerText = 'Upravit rezervaci';
+  document.getElementById('modal').style.display = 'flex';
+  document.getElementById('timeInput').value = r.time;
+  document.getElementById('nameInput').value = r.name;
+  document.getElementById('prefix').value = r.prefix;
+  document.getElementById('phoneInput').value = r.phone;
+  document.getElementById('emailInput').value = r.email;
+  document.getElementById('carInput').value = r.car;
+  document.getElementById('evcInput').value = r.evc;
+  document.querySelectorAll('#modal input').forEach(function(i){ i.classList.remove('input-error'); });
+  document.querySelectorAll('#daySelector .day-btn').forEach(function(b){
+    b.classList.toggle('selected', b.dataset.date === r.date);
   });
-
-  const row = document.getElementById("editControlRow");
-  row.innerHTML = "";
+  const row = document.getElementById('editControlRow');
+  row.innerHTML = '';
   if (r.checked && r.controlTechnician) {
-    row.innerHTML = `
-      <strong>Kontrolu provedl:</strong> ${r.controlTechnician}<br>
-      <button class="btn-primary" style="margin-top:4px;" onclick="startChangeControl('${r.id}')">
-        Změnit technika kontroly
-      </button>
-    `;
+    row.innerHTML =
+      '<strong>Kontrolu provedl:</strong> ' + r.controlTechnician +
+      '<br><button class="btn-primary" style="margin-top:4px;" onclick="startChangeControl(\'' + r.id + '\')">Změnit technika kontroly</button>';
+  }
+  const card = document.querySelector('.card[data-id="' + id + '"]');
+  if (card) {
+    card.classList.remove('edit-highlight');
+    void card.offsetWidth;
+    card.classList.add('edit-highlight');
   }
 }
 
 function startChangeControl(id) {
-  const r = getReservations().find(x => x.id === id);
+  const r = getReservations().find(function(x){return x.id === id;});
   if (!r) return;
-  pendingSaveData = { ...r };
+  pendingSaveData = Object.assign({}, r);
   selectingForCreation = false;
   changingControl = true;
   openNameSelect();
 }
-
 function closeModal() {
-  document.getElementById("modal").style.display = "none";
+  document.getElementById('modal').style.display = 'none';
+}
+
+function validatePhoneImmediate() {
+  const prefix = document.getElementById('prefix').value;
+  const phoneInput = document.getElementById('phoneInput');
+  const phone = phoneInput.value.trim();
+  const phoneLengths = {'+420':9,'+421':9,'+43':10,'+49':10,'+36':9,'+370':8};
+  phoneInput.classList.remove('input-error');
+  if (!phone) return;
+  const expected = phoneLengths[prefix];
+  if (phone.length !== expected) {
+    phoneInput.classList.add('input-error');
+    alert('Telefonní číslo má mít ' + expected + ' číslic.');
+  }
+}
+
+function validateEvcDuplicateImmediate() {
+  const evcInput = document.getElementById('evcInput');
+  const raw = evcInput.value.trim();
+  evcInput.classList.remove('input-error');
+  if (!raw) return;
+  const evc = parseInt(raw,10);
+  if (isNaN(evc)) return;
+  const list = getReservations();
+  const duplicate = list.find(function(r){return r.evc === evc && r.id !== editId;});
+  if (duplicate) evcInput.classList.add('input-error');
 }
 
 function validateForm(data) {
-  const phoneLengths = {"+420":9,"+421":9,"+43":10,"+49":10,"+36":9,"+370":8};
+  const phoneLengths = {'+420':9,'+421':9,'+43':10,'+49':10,'+36':9,'+370':8};
   if (!data.date || !data.time || !data.name || !data.car || isNaN(data.evc)) {
-    alert("Vyplň datum, čas, jméno, vozidlo a evidenční číslo.");
+    alert('Vyplň datum, čas, jméno, vozidlo a evidenční číslo.');
     return false;
   }
   if (data.phone.length !== phoneLengths[data.prefix]) {
-    alert("Telefon musí mít " + phoneLengths[data.prefix] + " číslic.");
+    alert('Telefon musí mít ' + phoneLengths[data.prefix] + ' číslic.');
     return false;
   }
-  if (data.email && (!data.email.includes("@") || !data.email.includes("."))) {
-    alert("E‑mail musí obsahovat '@' a '.'.");
+  if (data.email && (data.email.indexOf('@')===-1 || data.email.indexOf('.')===-1)) {
+    alert('E‑mail musí obsahovat "@" a ".".');
     return false;
   }
   if (data.evc < 1 || data.evc > 250) {
-    alert("Evidenční číslo musí být 1–250.");
+    alert('Evidenční číslo musí být 1–250.');
     return false;
   }
   return true;
 }
 
 function saveReservation() {
-  const selectedDay = document.querySelector(".day-btn.selected");
-  const date = selectedDay ? selectedDay.dataset.date : "";
-
-  const old = editId ? getReservations().find(r => r.id === editId) : {};
-
+  const selectedDay = document.querySelector('#daySelector .day-btn.selected');
+  const date = selectedDay ? selectedDay.dataset.date : '';
+  const old = editId ? getReservations().find(function(r){return r.id === editId;}) : {};
   const data = {
-    date,
-    time: document.getElementById("timeInput").value,
-    name: document.getElementById("nameInput").value.trim(),
-    prefix: document.getElementById("prefix").value,
-    phone: document.getElementById("phoneInput").value.trim(),
-    email: document.getElementById("emailInput").value.trim(),
-    car: document.getElementById("carInput").value.trim(),
-    evc: parseInt(document.getElementById("evcInput").value.trim(), 10),
-    checked: old?.checked || false,
-    technician: old?.technician || null,
-    controlTechnician: old?.controlTechnician || null
+    date: date,
+    time: document.getElementById('timeInput').value,
+    name: document.getElementById('nameInput').value.trim(),
+    prefix: document.getElementById('prefix').value,
+    phone: document.getElementById('phoneInput').value.trim(),
+    email: document.getElementById('emailInput').value.trim(),
+    car: document.getElementById('carInput').value.trim(),
+    evc: parseInt(document.getElementById('evcInput').value.trim(),10),
+    checked: old && old.checked || false,
+    technician: old && old.technician || null,
+    controlTechnician: old && old.controlTechnician || null
   };
-
   if (!validateForm(data)) return;
-
+  const list = getReservations();
+  const duplicate = list.find(function(r){return r.evc === data.evc && r.id !== editId;});
+  if (duplicate) {
+    alert('Pozor: toto evidenční číslo je již na nástěnce. Ukládání je povoleno.');
+  }
   pendingSaveData = data;
-
   if (editId) {
     finalizeSave(pendingSaveData);
     pendingSaveData = null;
     return;
   }
-
   selectingForCreation = true;
   changingControl = false;
   openNameSelect();
@@ -401,41 +703,44 @@ function saveReservation() {
 
 function finalizeSave(data) {
   let list = getReservations();
-
   if (editId) {
-    list = list.map(r => r.id === editId ? { ...data, id: editId } : r);
+    list = list.map(function(r){ return r.id === editId ? Object.assign({id: editId}, data) : r; });
+    lastSavedId = editId;
   } else {
-    list.push({ ...data, id: Date.now().toString() });
+    const newId = Date.now().toString();
+    list.push(Object.assign({id: newId}, data));
+    lastSavedId = newId;
   }
-
   setReservations(list);
   renderReservations();
   closeModal();
+  setTimeout(function(){ lastSavedId = null; }, 1500);
 }
 
 function openNameSelect() {
-  document.getElementById("nameSelectModal").style.display = "flex";
+  document.getElementById('nameSelectModal').style.display = 'flex';
 }
 function closeNameSelect() {
-  document.getElementById("nameSelectModal").style.display = "none";
+  document.getElementById('nameSelectModal').style.display = 'none';
 }
-
 function selectTechnician(name) {
   if (!pendingSaveData) return;
-
   if (selectingForCreation) {
     pendingSaveData.technician = name;
     finalizeSave(pendingSaveData);
   } else if (changingControl) {
-    pendingSaveData.checked = true;
-    pendingSaveData.controlTechnician = name;
-
+    const evc = pendingSaveData.evc;
     let list = getReservations();
-    list = list.map(r => r.id === pendingSaveData.id ? { ...pendingSaveData } : r);
+    list = list.map(function(r){
+      if (r.evc === evc) {
+        r.checked = true;
+        r.controlTechnician = name;
+      }
+      return r;
+    });
     setReservations(list);
     renderReservations();
   }
-
   pendingSaveData = null;
   selectingForCreation = false;
   changingControl = false;
@@ -443,72 +748,231 @@ function selectTechnician(name) {
 }
 
 function deleteCard(id) {
-  if (!confirm("Opravdu chceš smazat tuto kartu?")) return;
-  let list = getReservations().filter(r => r.id !== id);
+  if (!confirm('Opravdu chceš smazat tuto kartu?')) return;
+  let list = getReservations().filter(function(r){return r.id !== id;});
   setReservations(list);
   renderReservations();
 }
 
 function toggleControl(id) {
-  const r = getReservations().find(x => x.id === id);
+  const r = getReservations().find(function(x){return x.id === id;});
   if (!r || r.checked) return;
-  pendingSaveData = { ...r };
+  pendingSaveData = Object.assign({}, r);
   selectingForCreation = false;
   changingControl = true;
   openNameSelect();
 }
 
-function renderReservations() {
-  const container = document.getElementById("cardsContainer");
-  container.innerHTML = "";
-
-  let list = getReservations();
-  list.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
-
-  list.forEach(r => {
-    const card = document.createElement("div");
-    card.className = "card";
-    if (r.checked) card.classList.add("green");
-
-    const formattedDate = formatDate(r.date, r.time);
-    const checkboxHTML = r.checked ? "" : `
-      <label class="check-wrapper">
-        <input type="checkbox">
-        <span>Kontrola provedena</span>
-      </label>
-    `;
-
-    card.innerHTML = `
-      <div class="card-info">
-        <strong>📅 ${formattedDate}</strong><br>
-        👤 ${r.name}<br>
-        📞 ${r.prefix} ${r.phone}<br>
-        ${r.email ? `✉️ ${r.email}<br>` : ""}
-        🚗 ${r.car}<br>
-        Evidenční číslo: <strong>${r.evc}</strong>
-        ${r.technician ? `<br><br>📝 Kartu vytvořil: <strong>${r.technician}</strong>` : ""}
-        ${r.controlTechnician ? `<br>✅ Kontrolu provedl: <strong>${r.controlTechnician}</strong>` : ""}
-        ${checkboxHTML}
-      </div>
-      <div class="actions">
-        <button class="icon-btn edit-btn">✏️</button>
-        <button class="icon-btn delete-btn">🗑️</button>
-      </div>
-    `;
-
-    if (!r.checked) {
-      card.querySelector("input[type='checkbox']").addEventListener("change", () => toggleControl(r.id));
-    }
-
-    card.querySelector(".edit-btn").onclick = () => openEditModal(r.id);
-    card.querySelector(".delete-btn").onclick = () => deleteCard(r.id);
-
-    container.appendChild(card);
+function jumpToNextDuplicate(evc, currentId) {
+  const cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
+  const dupes = cards.filter(function(c){return c.dataset.evc == evc;});
+  if (dupes.length <= 1) return;
+  const index = dupes.findIndex(function(c){return c.dataset.id == currentId;});
+  const next = dupes[(index + 1) % dupes.length];
+  if (next) next.scrollIntoView({behavior:'smooth',block:'center'});
+  dupes.forEach(function(c){
+    c.classList.remove('jump-highlight');
+    void c.offsetWidth;
+    c.classList.add('jump-highlight');
   });
 }
 
-const daySelector = document.getElementById("daySelector");
-const days = ["Ne","Po","Út","St","Čt","Pá","So"];
+function computeDayCounts() {
+  const list = getReservations();
+  const counts = {};
+  list.forEach(function(r){
+    if (!r.date) return;
+    counts[r.date] = (counts[r.date] || 0) + 1;
+  });
+  return counts;
+}
+
+function updateDayBadges() {
+  // počty rezervací na den (původní logika)
+  const counts = computeDayCounts();
+
+  // připravíme data pro duplicity podle dne a EVC
+  const list = getReservations();
+  const evcCounts = {};
+  const dayEvcCounts = {};
+
+  list.forEach(function(r){
+    if (!r.evc && r.evc !== 0) return;
+
+    // globální počet výskytů EVC (pro určení, jestli je to duplicita)
+    evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
+
+    if (!r.date) return;
+    if (!dayEvcCounts[r.date]) dayEvcCounts[r.date] = {};
+    dayEvcCounts[r.date][r.evc] = (dayEvcCounts[r.date][r.evc] || 0) + 1;
+  });
+
+  document.querySelectorAll('.day-btn, .top-day-btn').forEach(function(btn){
+    const date = btn.dataset.date;
+
+    // smažeme staré badge i tečky
+    btn.querySelectorAll('.day-badge').forEach(function(b){ b.remove(); });
+    btn.querySelectorAll('.day-duplicate-dot').forEach(function(d){ d.remove(); });
+
+    // badge s počtem rezervací
+    const count = counts[date] || 0;
+    if (count > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'day-badge';
+      badge.textContent = count;
+      btn.appendChild(badge);
+    }
+
+    // tečky duplicit: pro každý den + EVC, kde je EVC celkově duplicitní
+    const evcMap = dayEvcCounts[date] || {};
+    const duplicatesForDay = Object.keys(evcMap)
+      .filter(function(evc){
+        return evcCounts[evc] > 1; // jen EVC, která jsou někde duplicitní
+      })
+      .map(function(evc){
+        return {
+          evc: parseInt(evc, 10),
+          count: evcMap[evc]
+        };
+      });
+
+    duplicatesForDay.forEach(function(dup, index){
+      const dot = document.createElement('div');
+      dot.className = 'day-duplicate-dot';
+      dot.style.top = (4 + index * 14) + 'px'; // svisle pod sebou
+      dot.style.background = getColorForEvc(dup.evc);
+      dot.textContent = dup.count; // kolik aut s tímto EVC v daný den
+      btn.appendChild(dot);
+    });
+  });
+}
+
+function updateFilterInfo() {
+  const info = document.getElementById('filterInfo');
+  const label = document.getElementById('filterLabel');
+  if (activeFilterDate) {
+    info.style.display = 'block';
+    label.textContent = formatDateShort(activeFilterDate);
+  } else {
+    info.style.display = 'none';
+  }
+}
+
+function renderReservations() {
+  const container = document.getElementById('cardsContainer');
+  container.innerHTML = '';
+  let list = getReservations();
+  list.sort(function(a,b){
+    return (a.date + a.time).localeCompare(b.date + b.time);
+  });
+  if (activeFilterDate) {
+    list = list.filter(function(r){return r.date === activeFilterDate;});
+  }
+  const evcCounts = {};
+  list.forEach(function(r){
+    if (!r.evc && r.evc !== 0) return;
+    evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
+  });
+  const evcControl = {};
+  list.forEach(function(r){
+    if (r.evc && r.checked && r.controlTechnician) {
+      evcControl[r.evc] = r.controlTechnician;
+    }
+  });
+
+  list.forEach(function(r){
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.id = r.id;
+    card.dataset.evc = r.evc;
+
+    const groupTech = r.evc ? evcControl[r.evc] : null;
+    const isGroupChecked = !!groupTech;
+    const isChecked = r.checked || isGroupChecked;
+
+    if (isChecked) card.classList.add('green');
+    if (lastSavedId && r.id === lastSavedId) card.classList.add('success-flash');
+
+    const formattedDate = formatDate(r.date, r.time);
+    const checkboxHTML = isChecked ? '' :
+      '<label class="check-wrapper"><input type="checkbox"><span>Kontrola provedena</span></label>';
+
+    const isDuplicate = r.evc && evcCounts[r.evc] > 1;
+    const dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
+
+    let stripColor = '';
+    if (isChecked && isDuplicate) {
+      stripColor = 'linear-gradient(to bottom,' + dupColor + ' 0%,#4caf50 100%)';
+    } else if (isChecked) {
+      stripColor = '#4caf50';
+    } else if (isDuplicate) {
+      stripColor = dupColor;
+    }
+
+    const stripHTML = stripColor ? '<div class="status-strip" style="background:' + stripColor + ';"></div>' : '';
+    const dotHTML = isDuplicate ? '<div class="duplicate-dot" style="background:' + dupColor + ';"></div>' : '';
+    const badgeHTML = isDuplicate
+      ? '<div class="duplicate-badge" onclick="jumpToNextDuplicate(' + r.evc + ', \'' + r.id + '\')" ' +
+        'data-tooltip="Klikni pro přeskočení na další kartu s tímto EVC" ' +
+        'style="background:' + dupColor + ';">' +
+        '⚠ DUPLICITA (EVC ' + r.evc + ' • ' + evcCounts[r.evc] + '×)</div>'
+      : '';
+
+    var emailLine = r.email ? '✉️ ' + r.email + '<br>' : '';
+    var techLine = r.technician ? '<br><br>📝 Kartu vytvořil: <strong>' + r.technician + '</strong>' : '';
+    var controlNameToShow = groupTech || r.controlTechnician || '';
+    var controlLine = controlNameToShow ? '<br>✅ Kontrolu provedl: <strong>' + controlNameToShow + '</strong>' : '';
+
+    var infoHtml =
+      '<strong>📅 ' + formattedDate + '</strong><br>' +
+      '👤 ' + r.name + '<br>' +
+      '📞 ' + r.prefix + ' ' + r.phone + '<br>' +
+      emailLine +
+      '🚗 ' + r.car + '<br>' +
+      'Evidenční číslo: <strong>' + r.evc + '</strong>' +
+      techLine +
+      controlLine +
+      checkboxHTML;
+
+    card.innerHTML =
+      stripHTML +
+      dotHTML +
+      badgeHTML +
+      '<div class="card-info">' + infoHtml + '</div>' +
+      '<div class="actions">' +
+        '<button class="icon-btn edit-btn">✏️</button>' +
+        '<button class="icon-btn delete-btn">🗑️</button>' +
+      '</div>';
+
+    if (!isChecked) {
+      const cb = card.querySelector("input[type='checkbox']");
+      if (cb) cb.addEventListener('change', function(){ toggleControl(r.id); });
+    }
+    card.querySelector('.edit-btn').onclick = function(){ openEditModal(r.id); };
+    card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
+
+    if (isDuplicate) {
+      card.addEventListener('mouseenter', function(){
+        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+          c.classList.add('duplicate-hover');
+        });
+      });
+      card.addEventListener('mouseleave', function(){
+        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+          c.classList.remove('duplicate-hover');
+        });
+      });
+    }
+
+    container.appendChild(card);
+  });
+
+  updateDayBadges();
+  updateFilterInfo();
+}
+
+const daySelector = document.getElementById('daySelector');
+const days = ['Ne','Po','Út','St','Čt','Pá','So'];
 let totalDaysGenerated = 0;
 
 function generateDays(count) {
@@ -516,30 +980,61 @@ function generateDays(count) {
   while (count-- > 0 && totalDaysGenerated < 14) {
     const d = new Date();
     d.setDate(today.getDate() + totalDaysGenerated);
-
-    const btn = document.createElement("div");
-    btn.className = "day-btn";
-    btn.dataset.date = d.toISOString().split("T")[0];
-    btn.innerHTML = `${days[d.getDay()]}<br><strong>${d.getDate()}</strong>`;
-
-    if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add("weekend");
-
-    btn.onclick = () => {
-      document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("selected"));
-      btn.classList.add("selected");
+    const btn = document.createElement('div');
+    btn.className = 'day-btn';
+    btn.dataset.date = d.toISOString().split('T')[0];
+    btn.innerHTML = days[d.getDay()] + '<br><strong>' + d.getDate() + '</strong>';
+    if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add('weekend');
+    btn.onclick = function(){
+      document.querySelectorAll('.day-btn').forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
     };
-
     daySelector.appendChild(btn);
     totalDaysGenerated++;
   }
+  updateDayBadges();
 }
 
-generateDays(7);
-daySelector.addEventListener("scroll", () => {
-  if (daySelector.scrollLeft + daySelector.clientWidth >= daySelector.scrollWidth - 5) {
-    generateDays(7);
+generateDays(14);
+
+const topDaySelector = document.getElementById('topDaySelector');
+let topDaysGenerated = 0;
+
+function generateTopDays(count) {
+  const today = new Date();
+  while (count-- > 0 && topDaysGenerated < 14) {
+    const d = new Date();
+    d.setDate(today.getDate() + topDaysGenerated);
+    const btn = document.createElement('div');
+    btn.className = 'top-day-btn';
+    btn.dataset.date = d.toISOString().split('T')[0];
+    btn.innerHTML = days[d.getDay()] + '<br><strong>' + d.getDate() + '</strong>';
+    if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add('top-weekend');
+    btn.onclick = function(){
+      if (activeFilterDate === btn.dataset.date) {
+        activeFilterDate = null;
+        document.querySelectorAll('.top-day-btn').forEach(function(b){ b.classList.remove('top-selected'); });
+      } else {
+        activeFilterDate = btn.dataset.date;
+        document.querySelectorAll('.top-day-btn').forEach(function(b){ b.classList.remove('top-selected'); });
+        btn.classList.add('top-selected');
+      }
+      renderReservations();
+    };
+    topDaySelector.appendChild(btn);
+    topDaysGenerated++;
   }
+  updateDayBadges();
+}
+
+generateTopDays(14);
+
+
+document.getElementById('phoneInput').addEventListener('blur', validatePhoneImmediate);
+document.getElementById('prefix').addEventListener('change', function(){
+  document.getElementById('phoneInput').classList.remove('input-error');
 });
+document.getElementById('evcInput').addEventListener('blur', validateEvcDuplicateImmediate);
 
 renderReservations();
 </script>
