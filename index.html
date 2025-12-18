@@ -678,12 +678,21 @@ function formatDateShort(dateStr) {
 }
 function getColorForEvc(evc) {
   if (!evc && evc !== 0) return null;
+
   const str = String(evc);
+
+  // ✅ silnější hash → žádné kolize u malých čísel
   let hash = 0;
-  for (let i=0;i<str.length;i++) hash = str.charCodeAt(i)+((hash<<5)-hash);
-  let hue = Math.abs(hash)%360;
-  if (hue>=90 && hue<=150) hue = (hue+120)%360;
-  return 'hsl(' + hue + ', 75%, 55%)';
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 131 + str.charCodeAt(i)) >>> 0;
+  }
+
+  let hue = hash % 360;
+
+  // ✅ vyhneme se zelené oblasti (kolize s kontrolou)
+  if (hue >= 90 && hue <= 150) hue = (hue + 120) % 360;
+
+  return `hsl(${hue}, 75%, 55%)`;
 }
 
 function openCreateModal() {
