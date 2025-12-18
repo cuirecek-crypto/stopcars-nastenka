@@ -679,18 +679,16 @@ function formatDateShort(dateStr) {
 function getColorForEvc(evc) {
   if (!evc && evc !== 0) return null;
 
-  // ✅ přidáme prefix, aby "1" a "2" nebyly extrémně podobné
-  const str = "EVC-" + String(evc);
+  const n = Number(evc);
+  if (!isFinite(n)) return null;
 
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 131 + str.charCodeAt(i)) >>> 0;
+  // lineární vzorec – každé EVC má jiný odstín
+  let hue = (n * 47) % 360;
+
+  // vyhneme se oblasti zelené (kolize s kontrolou)
+  if (hue >= 90 && hue <= 150) {
+    hue = (hue + 120) % 360;
   }
-
-  let hue = hash % 360;
-
-  // ✅ vyhneme se zelené oblasti (kolize s kontrolou)
-  if (hue >= 90 && hue <= 150) hue = (hue + 120) % 360;
 
   return `hsl(${hue}, 75%, 55%)`;
 }
