@@ -138,63 +138,139 @@ html, body {
   max-width:1000px;
   margin:32px auto;
   padding:0 16px 32px;
+
+  display:grid;
+  grid-template-columns:1fr;
+  gap:20px;
 }
-.card{
-  position:relative;
-  background:rgba(255,255,255,.92);
-  backdrop-filter:blur(10px);
-  padding:calc(20px + var(--badge-offset,0px)) 20px 18px 24px;
-  border-radius:20px;
-  box-shadow:0 8px 26px rgba(0,0,0,.08);
-  margin-bottom:20px;
-  display:flex;
-  justify-content:space-between;
-  gap:14px;
-  flex-wrap:nowrap;
-  opacity:0;
-  transform:translateY(25px);
-  animation:fadeUp .55s ease forwards;
-  transition:transform .25s ease,box-shadow .25s ease,background-color .25s ease,filter .2s ease;
-}
-@media(max-width:480px){
-  .card{
-    flex-direction:column;
-    gap:10px;
-    padding-right:16px;
+
+@media(min-width:900px){
+  .container{
+    grid-template-columns:1fr 1fr; /* dvě karty vedle sebe */
   }
 }
-.card.green{background-color:rgba(226,245,228,.95);}
-.card.duplicate-hover{filter:brightness(1.03);}
 
-.card-info{
-  font-size:15px;
-  line-height:1.75;
-  flex:1;
-  word-break:keep-all;
-  white-space:normal;
+/* ✅ Kompaktní karta */
+.card {
+  position: relative;
+  background-color: rgba(255,255,255,.92);
+  backdrop-filter: blur(10px);
+
+  /* menší padding = okamžitě nižší karta */
+  padding: calc(14px + var(--badge-offset,0px)) 16px 14px 18px;
+
+  border-radius: 20px;
+  box-shadow: 0 8px 26px rgba(0,0,0,.08);
+  margin-bottom: 16px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+
+  /* menší mezery mezi prvky */
+  gap: 8px;
+
+  flex-wrap: nowrap;
+  opacity: 0;
+  transform: translateY(25px);
+  animation: fadeUp .55s ease forwards;
+  transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease, filter .2s ease;
 }
 
-.actions{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  gap:12px;
-  margin-left:12px;
+@media(max-width:480px){
+  .card {
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 14px;
+  }
 }
+
+/* ✅ Kompaktní zelená karta */
+.card.green {
+  background-color: rgba(226,245,228,.95);
+}
+
+.card.duplicate-hover {
+  filter: brightness(1.03);
+}
+
+/* ✅ Kompaktní text uvnitř karty */
+.card-info {
+  font-size: 15px;
+
+  /* menší line-height = karta je nižší */
+  line-height: 1.45;
+
+  flex: 1;
+  word-break: keep-all;
+  white-space: normal;
+}
+
+/* ✅ Kompaktní akce */
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* menší mezera nad tlačítky */
+  margin-top: 6px;
+}
+
+.actions-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
+/* posun obsahu dolů na kartách s DUPLICITOU, aby byl odstup od praporku */
+.card.card-duplicate-bg {
+  --badge-offset: 6px;
+}
+
+@media (max-width:480px) {
+  .card.card-duplicate-bg {
+    --badge-offset: 8px; /* na mobilu o něco víc místa */
+  }
+}
+
+
+
 .icon-btn{
-  background:#eef1f6;
-  border:none;
-  padding:10px 12px;
+  min-width:70px;          /* obdélník jako dny v kalendáři */
+  height:42px;
   border-radius:14px;
+  border:1px solid rgba(180,190,210,.9);
+  box-shadow:0 6px 14px rgba(15,23,42,.18),0 1px 0 rgba(255,255,255,.9) inset;
   cursor:pointer;
   font-size:18px;
-  transition:transform .25s ease,background .25s ease;
-}
-.icon-btn:hover{
-  background:#dce3f0;
-  transform:scale(1.12);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:transform .2s ease, box-shadow .2s ease;
+  margin:0 10px;           /* mírné odsazení od středu */
 }
 
+/* EDIT – modrý přechod */
+.icon-btn.edit-btn{
+  background:linear-gradient(145deg,#ffffff,#e5f0ff);
+  border-color:#7ab3ff;
+}
+.icon-btn.edit-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(43,124,255,.35),0 1px 0 rgba(255,255,255,.95) inset;
+}
+
+/* DELETE – červený přechod */
+.icon-btn.delete-btn{
+  background:linear-gradient(145deg,#fff5f5,#ffe0e0);
+  border-color:#ff8a8a;
+}
+.icon-btn.delete-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 20px rgba(255,76,76,.35),0 1px 0 rgba(255,255,255,.95) inset;
+}
 .check-wrapper{
   display:flex;
   align-items:center;
@@ -444,6 +520,63 @@ input:focus,select:focus{
   border-color:#ffb366;
 }
 
+
+/* ✅ Zkontrolovaná + duplicitní */
+.card.green.card-duplicate-bg {
+  background:
+    /* fade doprava – jemný, nezačíná hned u lišty */
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.55) 65%,
+      rgba(255,255,255,1) 100%
+    ),
+    /* tvůj vertikální přechod */
+    linear-gradient(
+      to bottom,
+      var(--dup-bg-color-start) 1%,
+      var(--dup-bg-color-mid) 10%,
+      rgba(76,175,80,0.22) 30%,
+      rgba(76,175,80,0) 100%
+    ) !important;
+}
+
+/* ✅ Jen duplicitní */
+.card.card-duplicate-bg:not(.green) {
+  background:
+    /* fade doprava */
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.55) 65%,
+      rgba(255,255,255,1) 100%
+    ),
+    /* tvůj vertikální přechod */
+    linear-gradient(
+      to bottom,
+      var(--dup-bg-color-start) 0%,
+      var(--dup-bg-color-mid) 60%,
+      rgba(255,255,255,0) 100%
+    ) !important;
+}
+
+/* ✅ Jen zkontrolovaná */
+.card.green:not(.card-duplicate-bg) {
+  background:
+    /* fade doprava */
+    linear-gradient(
+      90deg,
+      rgba(255,255,255,0) 0%,
+      rgba(255,255,255,0.55) 65%,
+      rgba(255,255,255,1) 100%
+    ),
+    /* tvůj vertikální přechod */
+    linear-gradient(
+      to bottom,
+      rgba(76,175,80,0.22) 0%,
+      rgba(76,175,80,0) 100%
+    ) !important;
+}
 
 </style>
 </head>
@@ -764,19 +897,29 @@ function toggleControl(id) {
 }
 
 function jumpToNextDuplicate(evc, currentId) {
+
+  // pokud je aktivní filtr → vypneme ho, aby byly vidět všechny duplicity
+  if (activeFilterDate) {
+    activeFilterDate = null;
+    renderReservations();
+  }
+
   const cards = Array.prototype.slice.call(document.querySelectorAll('.card'));
-  const dupes = cards.filter(function(c){return c.dataset.evc == evc;});
+  const dupes = cards.filter(function(c){ return c.dataset.evc == evc; });
+
   if (dupes.length <= 1) return;
-  const index = dupes.findIndex(function(c){return c.dataset.id == currentId;});
+
+  const index = dupes.findIndex(function(c){ return c.dataset.id == currentId; });
   const next = dupes[(index + 1) % dupes.length];
-  if (next) next.scrollIntoView({behavior:'smooth',block:'center'});
+
+  if (next) next.scrollIntoView({behavior:'smooth', block:'center'});
+
   dupes.forEach(function(c){
     c.classList.remove('jump-highlight');
     void c.offsetWidth;
     c.classList.add('jump-highlight');
   });
 }
-
 function computeDayCounts() {
   const list = getReservations();
   const counts = {};
@@ -868,11 +1011,13 @@ function renderReservations() {
   if (activeFilterDate) {
     list = list.filter(function(r){return r.date === activeFilterDate;});
   }
-  const evcCounts = {};
-  list.forEach(function(r){
-    if (!r.evc && r.evc !== 0) return;
-    evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
-  });
+  // počítáme duplicity GLOBÁLNĚ, ne podle filtru
+const all = getReservations();
+const evcCounts = {};
+all.forEach(function(r){
+  if (!r.evc && r.evc !== 0) return;
+  evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
+});
   const evcControl = {};
   list.forEach(function(r){
     if (r.evc && r.checked && r.controlTechnician) {
@@ -900,9 +1045,23 @@ function renderReservations() {
     const isDuplicate = r.evc && evcCounts[r.evc] > 1;
     const dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
 
+if (isDuplicate){
+  // ✅ světlejší duplicitní barva pro pozadí karty
+  const start = dupColor.replace('hsl','hsla').replace(')',',0.18)');
+  const mid   = dupColor.replace('hsl','hsla').replace(')',',0.08)');
+
+  card.style.setProperty('--dup-bg-color-start', start);
+  card.style.setProperty('--dup-bg-color-mid', mid);
+
+  card.classList.add('card-duplicate-bg');
+}
     let stripColor = '';
     if (isChecked && isDuplicate) {
-      stripColor = 'linear-gradient(to bottom,' + dupColor + ' 0%,#4caf50 100%)';
+      stripColor = 'linear-gradient(to bottom,' 
+  + dupColor + ' 1%,' 
+  + dupColor + ' 10%,' 
+  + '#4caf50 30%)';
+
     } else if (isChecked) {
       stripColor = '#4caf50';
     } else if (isDuplicate) {
@@ -940,9 +1099,11 @@ function renderReservations() {
       badgeHTML +
       '<div class="card-info">' + infoHtml + '</div>' +
       '<div class="actions">' +
-        '<button class="icon-btn edit-btn">✏️</button>' +
-        '<button class="icon-btn delete-btn">🗑️</button>' +
-      '</div>';
+  '<div class="actions-row">' +
+    '<button class="icon-btn edit-btn">✏️</button>' +
+    '<button class="icon-btn delete-btn">🗑️</button>' +
+  '</div>' +
+'</div>';
 
     if (!isChecked) {
       const cb = card.querySelector("input[type='checkbox']");
