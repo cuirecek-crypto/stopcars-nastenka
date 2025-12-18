@@ -5,6 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rezervační nástěnka</title>
 <style>
+
+.view-switch {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.switch-btn {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid #cdd3dd;
+  background: rgba(255,255,255,0.85);
+  cursor: pointer;
+  font-size: 14px;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.switch-btn.active {
+  background: linear-gradient(90deg,#2b7cff,#00c6ff);
+  color: #fff;
+  border-color: rgba(255,255,255,.8);
+  transform: translateY(-2px);
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -84,6 +108,17 @@ html, body {
   width:12px;
   height:12px;
   border-radius:50%;
+}
+
+.card.archive-card {
+  background: rgba(240,240,240,0.9) !important;
+  filter: grayscale(0.8);
+}
+
+.card.archive-card .status-strip,
+.card.archive-card .duplicate-dot,
+.card.archive-card .duplicate-badge {
+  display: none !important;
 }
 
 .topbar{
@@ -323,6 +358,93 @@ html, body {
   margin:8px auto 0;
   padding:0 16px;
 }
+
+.archive-day-selector {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 2px 6px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.archive-day-selector::-webkit-scrollbar {
+  height: 10px;
+}
+
+.archive-day-selector::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.16);
+  border-radius: 999px;
+}
+
+.archive-day-btn {
+  position: relative;
+  min-width: 70px;
+  padding: 8px 10px;
+  border-radius: 14px;
+
+  /* ✅ výrazně šedivý archivní vzhled */
+  background: linear-gradient(145deg, #e0e0e0, #c8c8c8);
+  border: 1px solid #b0b0b0;
+  color: #444;
+
+  text-align: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+}
+
+.archive-day-btn:hover {
+  background: linear-gradient(145deg, #d5d5d5, #bfbfbf);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
+}
+
+.archive-day-btn.selected {
+  background: linear-gradient(145deg, #8a8a8a, #6f6f6f); /* výrazně tmavší */
+  border-color: #555;
+  color: #fff; /* lepší kontrast */
+  box-shadow: 0 12px 22px rgba(0,0,0,.35);
+  transform: translateY(-2px) scale(1.03); /* jemné zvýraznění */
+}
+
+.archive-day-btn.archive-weekend {
+  background: linear-gradient(145deg, #e8e0d5, #d6c7b4);
+  border-color: #b89c7a;
+}
+.archive-day-btn strong {
+  display: block;
+  font-size: 14px;
+}
+
+.archive-day-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.12);
+}
+
+.archive-day-btn.archive-weekend {
+  background: #f9f0e3;
+  border-color: #e3b073;
+}
+
+
+
+.archive-day-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 50%;
+  background: #8f8f8f;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .top-calendar-label{
   font-size:13px;
   opacity:.7;
@@ -578,6 +700,183 @@ input:focus,select:focus{
     ) !important;
 }
 
+.archive-mini-card {
+  background: rgba(240,240,240,0.9);
+  border: 1px solid #d0d0d0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-bottom: 10px;
+  font-size: 14px;
+  color: #444;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease;
+}
+
+.archive-mini-card:hover {
+  background: rgba(225,225,225,0.95);
+  transform: translateY(-2px);
+}
+
+.archive-mini-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.archive-mini-time {
+  font-weight: 600;
+  color: #333;
+}
+
+.archive-mini-name {
+  font-size: 13px;
+}
+
+.archive-mini-evc {
+  background: #b0b0b0;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.archive-expanded-card {
+  background: rgba(245,245,245,0.95);
+  border: 1px solid #d0d0d0;
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  animation: fadeUp .35s ease;
+}
+
+.archive-expanded-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+.archive-expanded-line {
+  font-size: 14px;
+  margin: 4px 0;
+  color: #444;
+}
+
+.archive-expanded-close {
+  text-align: right;
+  margin-top: 10px;
+}
+
+.archive-expanded-close button {
+  background: #ccc;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.archive-expanded-close button:hover {
+  background: #bbb;
+}
+
+.archive-expanded-card {
+  grid-row: span 2; /* ✅ zabere výšku dvou minikaret */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+@keyframes archiveExpand {
+  0% {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.archive-expand-anim {
+  animation: archiveExpand 0.25s ease-out;
+}
+
+.archive-mini-time,
+.top-day-btn strong,
+.day-btn strong,
+.archive-day-btn strong {
+  font-size: 12px;
+}
+
+@keyframes calendarCascadeLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-120px) scale(0.92);
+  }
+  60% {
+    opacity: 1;
+    transform: translateX(12px) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes calendarCascadeLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-180px) scale(0.90);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(18px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes calendarCascadeRight {
+  0% {
+    opacity: 0;
+    transform: translateX(180px) scale(0.90);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(-18px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ✅ pomalejší, majestátnější nájezd */
+.calendar-animate-left > * {
+  animation: calendarCascadeLeft 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.calendar-animate-right > * {
+  animation: calendarCascadeRight 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ✅ větší zpoždění mezi dny */
+.calendar-animate-left > *:nth-child(n) {
+  animation-delay: calc(0.045s * var(--i));
+}
+
+.calendar-animate-right > *:nth-child(n) {
+  animation-delay: calc(0.045s * var(--rev-i));
+}
+
 </style>
 </head>
 
@@ -591,6 +890,11 @@ input:focus,select:focus{
     <h1>Rezervační nástěnka</h1>
     <button class="btn-primary" onclick="openCreateModal()">+ Přidat rezervaci</button>
   </div>
+<div class="view-switch">
+  <button class="switch-btn" id="viewBoardBtn" onclick="switchView('board')">Nástěnka</button>
+  <button class="switch-btn" id="viewArchiveBtn" onclick="switchView('archive')">Archiv</button>
+</div>
+
 </div>
 
 <div class="top-calendar-wrapper">
@@ -600,6 +904,21 @@ input:focus,select:focus{
 
 <div class="filter-info" id="filterInfo" style="display:none;">
   Filtrováno podle dne: <strong id="filterLabel"></strong> – kliknutím na stejný den filtr zrušíš.
+</div>
+<!-- ✅ Archivní kalendář – 30 dní zpět -->
+<div id="archiveCalendarWrapper" style="display:none; max-width:1000px; margin:10px auto 0; padding:0 16px;">
+  <div class="top-calendar-label">Archiv posledních 30 dní</div>
+  <div class="archive-day-selector" id="archiveDaySelector"></div>
+</div>
+
+<!-- ✅ Vyhledávání až POD kalendářem -->
+<div id="archiveSearchWrapper" style="display:none; max-width:1000px; margin:10px auto 0; padding:0 16px;">
+  <input 
+    type="text" 
+    id="archiveSearchInput" 
+    placeholder="Hledat v archivu (jméno, auto, EVC, telefon, email…)" 
+    oninput="handleArchiveSearchInput(this.value)"
+    style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid #ccd2dd; font-size:14px;">
 </div>
 
 <div class="container" id="cardsContainer"></div>
@@ -654,10 +973,26 @@ let selectingForCreation = false;
 let changingControl = false;
 let lastSavedId = null;
 let activeFilterDate = null;
+let currentView = 'board'; // 'board' nebo 'archive'
 
 function getReservations() {
-  return JSON.parse(localStorage.getItem('reservations') || '[]');
+  const list = JSON.parse(localStorage.getItem('reservations') || '[]');
+
+  // doplníme chybějící hodnoty u starých záznamů
+  return list.map(function(r){
+    if (!r.createdAt) r.createdAt = Date.now();
+    if (typeof r.archived === 'undefined') r.archived = false;
+    return r;
+  });
 }
+
+function formatDayMonth(dateStr) {
+  const d = new Date(dateStr + "T12:00:00");
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${day}.${month}.`;
+}
+
 function setReservations(list) {
   localStorage.setItem('reservations', JSON.stringify(list));
 }
@@ -691,6 +1026,137 @@ function getColorForEvc(evc) {
   }
 
   return `hsl(${hue}, 75%, 55%)`;
+}
+
+// ✅ Vrátí počty archivovaných rezervací podle data za posledních 30 dní zpět
+function getArchiveCountsLast30Days() {
+  const list = getReservations();
+  const counts = {};
+
+  const today = new Date();
+  const todayMidnight = new Date(today.toISOString().split('T')[0] + "T00:00:00").getTime();
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+  list.forEach(function(r) {
+    if (!r.archived) return;
+    if (!r.date) return;
+
+    const t = new Date(r.date + "T00:00:00").getTime();
+    const diff = todayMidnight - t;
+
+    if (diff < 0) return;          // budoucnost ignorujeme
+    if (diff >= THIRTY_DAYS) return; // starší než 30 dní ignorujeme
+
+    counts[r.date] = (counts[r.date] || 0) + 1;
+  });
+
+  return counts;
+}
+
+// ✅ Vykreslení archivního kalendáře 30 dní zpět
+function renderArchiveCalendar() {
+  const wrapper = document.getElementById('archiveCalendarWrapper');
+  const container = document.getElementById('archiveDaySelector');
+  if (!wrapper || !container) return;
+
+  container.innerHTML = "";
+
+  const counts = getArchiveCountsLast30Days();
+
+  const today = new Date();
+  // generujeme od dnes - 29 po dnes
+  for (let offset = 29; offset >= 0; offset--) {
+    const d = new Date();
+    d.setDate(today.getDate() - offset);
+
+    const iso = d.toISOString().split('T')[0];
+    const weekday = ['Ne','Po','Út','St','Čt','Pá','So'][d.getDay()];
+
+    const btn = document.createElement('div');
+btn.style.setProperty('--i', 29 - offset);
+btn.style.setProperty('--rev-i', offset);
+    btn.className = 'archive-day-btn';
+    btn.dataset.date = iso;
+
+    if (d.getDay() === 0 || d.getDay() === 6) {
+      btn.classList.add('archive-weekend');
+    }
+
+    btn.innerHTML = weekday + '<br><strong>' + formatDayMonth(iso) + '</strong>';
+
+    const count = counts[iso] || 0;
+    if (count > 0) {
+      const badge = document.createElement('div');
+      badge.className = 'archive-day-badge';
+      badge.textContent = count;
+      btn.appendChild(badge);
+    }
+
+    btn.onclick = function() {
+      if (activeFilterDate === iso) {
+        activeFilterDate = null;
+      } else {
+        activeFilterDate = iso;
+      }
+      highlightArchiveSelected();
+      renderReservations();
+    };
+
+    container.appendChild(btn);
+  }
+
+  highlightArchiveSelected();
+}
+
+function highlightArchiveSelected() {
+  const buttons = document.querySelectorAll('.archive-day-btn');
+  buttons.forEach(function(btn) {
+    btn.classList.toggle('selected', btn.dataset.date === activeFilterDate);
+  });
+}
+
+function switchView(view) {
+  currentView = view;
+const topCal = document.getElementById('topDaySelector');
+const archiveCal = document.getElementById('archiveDaySelector');
+
+topCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
+archiveCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
+
+if (view === 'board') {
+  topCal.classList.add('calendar-animate-left');
+}
+
+if (view === 'archive') {
+  archiveCal.classList.add('calendar-animate-right');
+
+  // ✅ slider hned na pravou stranu
+  setTimeout(() => {
+    archiveCal.scrollLeft = archiveCal.scrollWidth;
+  }, 20);
+}
+  document.getElementById('viewBoardBtn').classList.toggle('active', view === 'board');
+  document.getElementById('viewArchiveBtn').classList.toggle('active', view === 'archive');
+
+  // ✅ vyhledávání jen v archivu
+  document.getElementById('archiveSearchWrapper').style.display =
+    view === 'archive' ? 'block' : 'none';
+
+  // ✅ nahoře kalendář jen pro nástěnku
+  document.querySelector('.top-calendar-wrapper').style.display =
+    view === 'board' ? 'block' : 'none';
+
+  // ✅ šedý archivní kalendář jen v archivu
+  const archiveWrapper = document.getElementById('archiveCalendarWrapper');
+  if (archiveWrapper) {
+    archiveWrapper.style.display = (view === 'archive') ? 'block' : 'none';
+  }
+
+  if (view === 'archive') {
+    renderArchiveCalendar();
+  }
+
+  renderReservations();
 }
 
 function openCreateModal() {
@@ -748,6 +1214,138 @@ function openEditModal(id) {
   }
 }
 
+function autoArchiveOldReservations() {
+  const list = getReservations();
+  const today = new Date().toISOString().split("T")[0];
+
+  let changed = false;
+
+  const updated = list.map(r => {
+    if (!r.archived && r.date < today) {
+      r.archived = true;
+      changed = true;
+    }
+    return r;
+  });
+
+  if (changed) {
+    setReservations(updated);
+  }
+}
+
+let archiveSearchQuery = "";
+let archiveSearchTimer = null;
+
+function handleArchiveSearchInput(value) {
+  archiveSearchQuery = value.toLowerCase();
+
+  clearTimeout(archiveSearchTimer);
+  archiveSearchTimer = setTimeout(() => {
+    renderReservations();
+  }, 150);
+}
+
+function matchesArchiveSearch(r) {
+  if (!archiveSearchQuery) return true;
+
+  const fields = [
+    r.name,
+    r.phone,
+    r.email,
+    r.car,
+    String(r.evc),
+    r.date,
+    r.time
+  ];
+
+  // ignorujeme techniky
+  // r.technician
+  // r.controlTechnician
+
+  const haystack = fields.join(" ").toLowerCase();
+  return haystack.includes(archiveSearchQuery);
+}
+
+function toggleArchiveExpanded(id) {
+  const all = getReservations();
+  const r = all.find(x => x.id === id);
+  if (!r) return;
+
+  const el = document.querySelector('[data-id="' + id + '"]');
+  if (!el) return;
+
+  // ✅ Pokud je už rozbalená → sbalit zpět
+  if (el.classList.contains('archive-expanded-card')) {
+    el.className = 'archive-mini-card';
+    el.innerHTML = `
+      <div class="archive-mini-left">
+        <div class="archive-mini-time">${formatDayMonth(r.date)}</div>
+        <div class="archive-mini-name">${r.name}</div>
+        <div class="archive-mini-name">${r.car}</div>
+      </div>
+      <div class="archive-mini-evc">EVC ${r.evc}</div>
+    `;
+
+    // ✅ znovu přidáme onclick, aby šla karta znovu otevřít
+    el.onclick = function() {
+      toggleArchiveExpanded(id);
+    };
+
+    return;
+  }
+
+  // ✅ Zavřít jiné otevřené karty
+  document.querySelectorAll('.archive-expanded-card').forEach(function(cardEl) {
+    const cid = cardEl.dataset.id;
+    const rr = all.find(x => x.id === cid);
+    if (!rr) return;
+
+    cardEl.className = 'archive-mini-card';
+    cardEl.innerHTML = `
+      <div class="archive-mini-left">
+        <div class="archive-mini-time">${formatDayMonth(rr.date)}</div>
+        <div class="archive-mini-name">${rr.name}</div>
+        <div class="archive-mini-name">${rr.car}</div>
+      </div>
+      <div class="archive-mini-evc">EVC ${rr.evc}</div>
+    `;
+
+    // ✅ obnovíme onclick
+    cardEl.onclick = function() {
+      toggleArchiveExpanded(cid);
+    };
+  });
+
+  // ✅ Přepnout minikartu na velkou archivní kartu
+  el.className = 'archive-expanded-card archive-expand-anim';
+  el.innerHTML = `
+    <div class="archive-expanded-title">${formatDayMonth(r.date)} ${r.time}</div>
+
+    <div class="archive-expanded-line">👤 ${r.name}</div>
+    <div class="archive-expanded-line">📞 ${r.prefix} ${r.phone}</div>
+    ${r.email ? `<div class="archive-expanded-line">✉️ ${r.email}</div>` : ''}
+    <div class="archive-expanded-line">🚗 ${r.car}</div>
+    <div class="archive-expanded-line">Evidenční číslo: <strong>${r.evc}</strong></div>
+
+    <div class="archive-expanded-line">📝 Kartu vytvořil: <strong>${r.technician || '—'}</strong></div>
+    <div class="archive-expanded-line">✅ Kontrolu provedl: <strong>${r.controlTechnician || '—'}</strong></div>
+
+    <div class="archive-expanded-close">
+      <button type="button" class="archive-close-btn">Zavřít</button>
+    </div>
+  `;
+
+  // ✅ expanded karta NESMÍ reagovat na kliknutí
+  el.onclick = null;
+
+  // ✅ zavírací tlačítko
+  const closeBtn = el.querySelector('.archive-close-btn');
+  closeBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleArchiveExpanded(id);
+  });
+}
+
 function startChangeControl(id) {
   const r = getReservations().find(function(x){return x.id === id;});
   if (!r) return;
@@ -771,6 +1369,22 @@ function validatePhoneImmediate() {
   if (phone.length !== expected) {
     phoneInput.classList.add('input-error');
     alert('Telefonní číslo má mít ' + expected + ' číslic.');
+  }
+}
+
+function cleanupOldReservations() {
+  const list = getReservations();
+  const now = Date.now();
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+
+  const filtered = list.filter(r => {
+    if (!r.archived) return true; // mažeme jen archivované
+    const date = new Date(r.date + "T00:00:00").getTime();
+    return now - date < THIRTY_DAYS;
+  });
+
+  if (filtered.length !== list.length) {
+    setReservations(filtered);
   }
 }
 
@@ -844,13 +1458,29 @@ function saveReservation() {
 function finalizeSave(data) {
   let list = getReservations();
   if (editId) {
-    list = list.map(function(r){ return r.id === editId ? Object.assign({id: editId}, data) : r; });
-    lastSavedId = editId;
-  } else {
-    const newId = Date.now().toString();
-    list.push(Object.assign({id: newId}, data));
-    lastSavedId = newId;
-  }
+  list = list.map(function(r){
+    if (r.id === editId) {
+      return Object.assign(
+        {
+          id: editId,
+          createdAt: r.createdAt || Date.now(),
+          archived: r.archived || false
+        },
+        data
+      );
+    }
+    return r;
+  });
+  lastSavedId = editId;
+} else {
+  const newId = Date.now().toString();
+  list.push(Object.assign({
+    id: newId,
+    createdAt: Date.now(),
+    archived: false
+  }, data));
+  lastSavedId = newId;
+}
   setReservations(list);
   renderReservations();
   closeModal();
@@ -947,6 +1577,10 @@ function updateDayBadges() {
   const dayEvcCounts = {};
 
   list.forEach(function(r){
+
+    // ✅ IGNORUJ ARCHIVOVANÉ REZERVACE
+    if (r.archived) return;
+
     if (!r.evc && r.evc !== 0) return;
 
     // globální počet výskytů EVC (pro určení, jestli je to duplicita)
@@ -973,11 +1607,11 @@ function updateDayBadges() {
       btn.appendChild(badge);
     }
 
-    // tečky duplicit: pro každý den + EVC, kde je EVC celkově duplicitní
+    // tečky duplicit
     const evcMap = dayEvcCounts[date] || {};
     const duplicatesForDay = Object.keys(evcMap)
       .filter(function(evc){
-        return evcCounts[evc] > 1; // jen EVC, která jsou někde duplicitní
+        return evcCounts[evc] > 1;
       })
       .map(function(evc){
         return {
@@ -989,9 +1623,9 @@ function updateDayBadges() {
     duplicatesForDay.forEach(function(dup, index){
       const dot = document.createElement('div');
       dot.className = 'day-duplicate-dot';
-      dot.style.top = (4 + index * 14) + 'px'; // svisle pod sebou
+      dot.style.top = (4 + index * 14) + 'px';
       dot.style.background = getColorForEvc(dup.evc);
-      dot.textContent = dup.count; // kolik aut s tímto EVC v daný den
+      dot.textContent = dup.count;
       btn.appendChild(dot);
     });
   });
@@ -1002,7 +1636,7 @@ function updateFilterInfo() {
   const label = document.getElementById('filterLabel');
   if (activeFilterDate) {
     info.style.display = 'block';
-    label.textContent = formatDateShort(activeFilterDate);
+    label.textContent = formatDayMonth(activeFilterDate);
   } else {
     info.style.display = 'none';
   }
@@ -1011,7 +1645,22 @@ function updateFilterInfo() {
 function renderReservations() {
   const container = document.getElementById('cardsContainer');
   container.innerHTML = '';
+  autoArchiveOldReservations();
+cleanupOldReservations();
   let list = getReservations();
+  // ✅ Rozdělení dat podle zobrazení
+  if (currentView === 'board') {
+    // nástěnka = jen nearchivované
+    list = list.filter(r => !r.archived);
+  } else {
+    // archiv = jen archivované
+    list = list.filter(r => r.archived);
+  }
+
+// ✅ vyhledávání jen v archivu
+if (currentView === 'archive') {
+  list = list.filter(matchesArchiveSearch);
+}
   list.sort(function(a,b){
     return (a.date + a.time).localeCompare(b.date + b.time);
   });
@@ -1021,7 +1670,11 @@ function renderReservations() {
   // počítáme duplicity GLOBÁLNĚ, ne podle filtru
 const all = getReservations();
 const evcCounts = {};
+
 all.forEach(function(r){
+  // 🔹 ignoruj archivované karty pro logiku duplicit na nástěnce
+  if (r.archived) return;
+
   if (!r.evc && r.evc !== 0) return;
   evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
 });
@@ -1033,8 +1686,34 @@ all.forEach(function(r){
   });
 
   list.forEach(function(r){
+
+if (currentView === 'archive') {
+  const mini = document.createElement('div');
+  mini.className = 'archive-mini-card';
+  mini.dataset.id = r.id;
+
+  mini.innerHTML = `
+    <div class="archive-mini-left">
+      <div class="archive-mini-time">${formatDayMonth(r.date)}</div>
+      <div class="archive-mini-name">${r.name}</div>
+      <div class="archive-mini-name">${r.car}</div>
+    </div>
+    <div class="archive-mini-evc">EVC ${r.evc}</div>
+  `;
+
+  mini.onclick = function() {
+    toggleArchiveExpanded(r.id);
+  };
+
+  container.appendChild(mini);
+  return; // ✅ přeskočíme velkou kartu
+}
+
     const card = document.createElement('div');
     card.className = 'card';
+if (currentView === 'archive') {
+  card.classList.add('archive-card');
+}
     card.dataset.id = r.id;
     card.dataset.evc = r.evc;
 
@@ -1049,8 +1728,13 @@ all.forEach(function(r){
     const checkboxHTML = isChecked ? '' :
       '<label class="check-wrapper"><input type="checkbox"><span>Kontrola provedena</span></label>';
 
-    const isDuplicate = r.evc && evcCounts[r.evc] > 1;
-    const dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
+    let isDuplicate = false;
+let dupColor = null;
+
+if (currentView === 'board') {
+  isDuplicate = r.evc && evcCounts[r.evc] > 1;
+  dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
+}
 
 if (isDuplicate){
   // ✅ světlejší duplicitní barva pro pozadí karty
@@ -1119,18 +1803,18 @@ if (isDuplicate){
     card.querySelector('.edit-btn').onclick = function(){ openEditModal(r.id); };
     card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
 
-    if (isDuplicate) {
-      card.addEventListener('mouseenter', function(){
-        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
-          c.classList.add('duplicate-hover');
-        });
-      });
-      card.addEventListener('mouseleave', function(){
-        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
-          c.classList.remove('duplicate-hover');
-        });
-      });
-    }
+    if (currentView === 'board' && isDuplicate) {
+  card.addEventListener('mouseenter', function(){
+    document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+      c.classList.add('duplicate-hover');
+    });
+  });
+  card.addEventListener('mouseleave', function(){
+    document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+      c.classList.remove('duplicate-hover');
+    });
+  });
+}
 
     container.appendChild(card);
   });
@@ -1149,9 +1833,10 @@ function generateDays(count) {
     const d = new Date();
     d.setDate(today.getDate() + totalDaysGenerated);
     const btn = document.createElement('div');
+btn.style.setProperty('--i', totalDaysGenerated);
     btn.className = 'day-btn';
     btn.dataset.date = d.toISOString().split('T')[0];
-    btn.innerHTML = days[d.getDay()] + '<br><strong>' + d.getDate() + '</strong>';
+    btn.innerHTML = days[d.getDay()] + '<br><strong>' + formatDayMonth(d.toISOString().split("T")[0]) + '</strong>';
     if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add('weekend');
     btn.onclick = function(){
       document.querySelectorAll('.day-btn').forEach(function(b){ b.classList.remove('selected'); });
@@ -1174,9 +1859,10 @@ function generateTopDays(count) {
     const d = new Date();
     d.setDate(today.getDate() + topDaysGenerated);
     const btn = document.createElement('div');
+btn.style.setProperty('--i', topDaysGenerated);
     btn.className = 'top-day-btn';
     btn.dataset.date = d.toISOString().split('T')[0];
-    btn.innerHTML = days[d.getDay()] + '<br><strong>' + d.getDate() + '</strong>';
+    btn.innerHTML = days[d.getDay()] + '<br><strong>' + formatDayMonth(d.toISOString().split("T")[0]) + '</strong>';
     if (d.getDay() === 0 || d.getDay() === 6) btn.classList.add('top-weekend');
     btn.onclick = function(){
       if (activeFilterDate === btn.dataset.date) {
@@ -1188,6 +1874,7 @@ function generateTopDays(count) {
         btn.classList.add('top-selected');
       }
       renderReservations();
+switchView('board');
     };
     topDaySelector.appendChild(btn);
     topDaysGenerated++;
