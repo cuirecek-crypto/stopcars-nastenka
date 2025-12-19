@@ -663,7 +663,7 @@ input:focus,select:focus{
     ) !important;
 }
 
-/* ✅ Jen duplicitní */
+/* ✅ Duplicitní karta bez kontroly – karta zůstává bílá, jen horní fade */
 .card.card-duplicate-bg:not(.green) {
   background:
     /* fade doprava */
@@ -673,12 +673,12 @@ input:focus,select:focus{
       rgba(255,255,255,0.55) 65%,
       rgba(255,255,255,1) 100%
     ),
-    /* tvůj vertikální přechod */
+    /* horní barevný pruh duplicity */
     linear-gradient(
       to bottom,
       var(--dup-bg-color-start) 0%,
-      var(--dup-bg-color-mid) 60%,
-      rgba(255,255,255,0) 100%
+      var(--dup-bg-color-mid) 18%,
+      rgba(255,255,255,0) 40%
     ) !important;
 }
 
@@ -1012,29 +1012,28 @@ function formatDateShort(dateStr) {
   return days[d.getDay()] + ' ' + d.getDate() + '. ' + months[d.getMonth()] + '.';
 }
 
-// ✅ 20 jasně odlišných barev pro duplicity (bez zelené, bez šedé)
+// ✅ 8 jasně odlišných barev pro duplicity (bez zelené, bez šedé)
 const DUPLICATE_COLORS = [
-  "#FF3B30", "#D0021B", "#FF2D55", "#FF5E3A",
-  "#FF9500", "#FFCC00", "#FFB800", "#FF6F00",
-  "#007AFF", "#0040DD", "#5AC8FA", "#4A4AFF",
-  "#5856D6", "#AF52DE", "#BF5AF2", "#FF3FA4",
-  "#C51162", "#AA00FF", "#E91E63", "#F50057"
+  "#ff0000",
+  "#eeff00",
+  "#1100ff",
+  "#ff00aa",
+  "#ffaa00",
+  "#aa00ff",
+  "#00ffff",
+  "#ff9900"
 ];
 
-// ✅ mapa přidělených barev pro jednotlivá EVC
 const usedDuplicateColors = new Map();
 let duplicateColorIndex = 0;
 
-// ✅ Náhrada původního HSL generátoru – zachováváme název funkce!
 function getColorForEvc(evc) {
   if (!evc && evc !== 0) return null;
 
-  // pokud už má EVC barvu, vrátíme ji
   if (usedDuplicateColors.has(evc)) {
     return usedDuplicateColors.get(evc);
   }
 
-  // přidělíme novou barvu z palety
   const color = DUPLICATE_COLORS[duplicateColorIndex % DUPLICATE_COLORS.length];
   duplicateColorIndex++;
 
