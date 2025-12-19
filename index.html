@@ -1691,12 +1691,15 @@ all.forEach(function(r){
   if (!r.evc && r.evc !== 0) return;
   evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
 });
-  const evcControl = {};
-  list.forEach(function(r){
-    if (r.evc && r.checked && r.controlTechnician) {
-      evcControl[r.evc] = r.controlTechnician;
-    }
-  });
+  // ✅ Musíme použít celý seznam, ne filtrovaný
+const all = getReservations();
+const evcControl = {};
+
+all.forEach(function(r){
+  if (!r.archived && r.evc && r.checked && r.controlTechnician) {
+    evcControl[r.evc] = r.controlTechnician;
+  }
+});
 
   list.forEach(function(r){
 
