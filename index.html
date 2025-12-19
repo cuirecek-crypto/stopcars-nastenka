@@ -1011,21 +1011,35 @@ function formatDateShort(dateStr) {
   const months = ['1','2','3','4','5','6','7','8','9','10','11','12'];
   return days[d.getDay()] + ' ' + d.getDate() + '. ' + months[d.getMonth()] + '.';
 }
+
+// ✅ 20 jasně odlišných barev pro duplicity (bez zelené, bez šedé)
+const DUPLICATE_COLORS = [
+  "#FF3B30", "#D0021B", "#FF2D55", "#FF5E3A",
+  "#FF9500", "#FFCC00", "#FFB800", "#FF6F00",
+  "#007AFF", "#0040DD", "#5AC8FA", "#4A4AFF",
+  "#5856D6", "#AF52DE", "#BF5AF2", "#FF3FA4",
+  "#C51162", "#AA00FF", "#E91E63", "#F50057"
+];
+
+// ✅ mapa přidělených barev pro jednotlivá EVC
+const usedDuplicateColors = new Map();
+let duplicateColorIndex = 0;
+
+// ✅ Náhrada původního HSL generátoru – zachováváme název funkce!
 function getColorForEvc(evc) {
   if (!evc && evc !== 0) return null;
 
-  const n = Number(evc);
-  if (!isFinite(n)) return null;
-
-  // lineární vzorec – každé EVC má jiný odstín
-  let hue = (n * 47) % 360;
-
-  // vyhneme se oblasti zelené (kolize s kontrolou)
-  if (hue >= 90 && hue <= 150) {
-    hue = (hue + 120) % 360;
+  // pokud už má EVC barvu, vrátíme ji
+  if (usedDuplicateColors.has(evc)) {
+    return usedDuplicateColors.get(evc);
   }
 
-  return `hsl(${hue}, 75%, 55%)`;
+  // přidělíme novou barvu z palety
+  const color = DUPLICATE_COLORS[duplicateColorIndex % DUPLICATE_COLORS.length];
+  duplicateColorIndex++;
+
+  usedDuplicateColors.set(evc, color);
+  return color;
 }
 
 // ✅ Vrátí počty archivovaných rezervací podle data za posledních 30 dní zpět
