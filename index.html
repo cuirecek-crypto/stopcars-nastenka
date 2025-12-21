@@ -8,12 +8,16 @@
 
 .view-switch {
   display: flex;
-  gap: 10px;
+  gap: 40px;
   margin-top: 6px;
 }
 
 .switch-btn {
   padding: 8px 14px;
+height: 42px;              /* ✅ sjednocená výška */
+  display: flex;             /* ✅ vertikální zarovnání textu */
+  align-items: center;       /* ✅ text přesně uprostřed */
+
   border-radius: 12px;
   border: 1px solid #cdd3dd;
   background: rgba(255,255,255,0.85);
@@ -22,11 +26,54 @@
   transition: background .2s ease, transform .2s ease;
 }
 
+.switch-btn {
+  position: relative;
+}
+
+.switch-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 50%;
+  background: #2b7cff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+/* ✅ Neaktivní ARCHIV – světle šedý jako běžný archivní den */
+#viewArchiveBtn:not(.active) {
+  background: linear-gradient(145deg, #e0e0e0, #c8c8c8) !important;
+  border: 1px solid #b0b0b0 !important;
+  color: #444 !important;
+}
+
+/* ✅ Badge na ARCHIVU je vždy šedý – i když není aktivní */
+#viewArchiveBtn .switch-badge {
+  background: #6f6f6f !important;
+  border-color: #fff !important;
+  color: #fff !important;
+}
+
 .switch-btn.active {
   background: linear-gradient(90deg,#2b7cff,#00c6ff);
   color: #fff;
   border-color: rgba(255,255,255,.8);
   transform: translateY(-2px);
+}
+
+/* ✅ Aktivní ARCHIV – šedý vzhled */
+#viewArchiveBtn.active {
+  background: linear-gradient(145deg, #8a8a8a, #6f6f6f) !important;
+  border-color: #555 !important;
+  color: #fff !important;
 }
 
 html, body {
@@ -270,8 +317,6 @@ html, body {
   }
 }
 
-
-
 .icon-btn{
   min-width:70px;          /* obdélník jako dny v kalendáři */
   height:42px;
@@ -426,8 +471,6 @@ html, body {
   border-color: #e3b073;
 }
 
-
-
 .archive-day-badge {
   position: absolute;
   top: 4px;
@@ -450,6 +493,7 @@ html, body {
   opacity:.7;
   margin:2px 2px 4px;
 }
+
 .top-day-selector{
   display:flex;
   gap:8px;
@@ -642,7 +686,6 @@ input:focus,select:focus{
   border-color:#ffb366;
 }
 
-
 /* ✅ Zkontrolovaná + duplicitní */
 .card.green.card-duplicate-bg {
   background:
@@ -656,9 +699,9 @@ input:focus,select:focus{
     /* tvůj vertikální přechod */
     linear-gradient(
       to bottom,
-      var(--dup-bg-color-start) 1%,
-      var(--dup-bg-color-mid) 10%,
-      rgba(76,175,80,0.22) 30%,
+      var(--dup-bg-color-start) 0%,
+      var(--dup-bg-color-mid) 6%,
+      rgba(76,175,80,0.22) 20%,
       rgba(76,175,80,0) 100%
     ) !important;
 }
@@ -677,8 +720,8 @@ input:focus,select:focus{
     linear-gradient(
       to bottom,
       var(--dup-bg-color-start) 0%,
-      var(--dup-bg-color-mid) 18%,
-      rgba(255,255,255,0) 40%
+      var(--dup-bg-color-mid) 6%,
+      rgba(255,255,255,0) 20%
     ) !important;
 }
 
@@ -817,21 +860,6 @@ input:focus,select:focus{
 @keyframes calendarCascadeLeft {
   0% {
     opacity: 0;
-    transform: translateX(-120px) scale(0.92);
-  }
-  60% {
-    opacity: 1;
-    transform: translateX(12px) scale(1.03);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(0) scale(1);
-  }
-}
-
-@keyframes calendarCascadeLeft {
-  0% {
-    opacity: 0;
     transform: translateX(-180px) scale(0.90);
   }
   55% {
@@ -890,16 +918,29 @@ input:focus,select:focus{
     <h1>Rezervační nástěnka</h1>
     <button class="btn-primary" onclick="openCreateModal()">+ Přidat rezervaci</button>
   </div>
-<div class="view-switch">
-  <button class="switch-btn" id="viewBoardBtn" onclick="switchView('board')">Nástěnka</button>
-  <button class="switch-btn" id="viewArchiveBtn" onclick="switchView('archive')">Archiv</button>
-</div>
+  <div class="view-switch">
+   <button class="switch-btn" id="viewBoardBtn" onclick="switchView('board')">
+  Nástěnka <span class="switch-badge" id="boardCount"></span>
+</button>
 
+<button class="switch-btn" id="viewArchiveBtn" onclick="switchView('archive')">
+  Archiv <span class="switch-badge" id="archiveCount"></span>
+</button>
+  </div>
 </div>
 
 <div class="top-calendar-wrapper">
   <div class="top-calendar-label">Rezervace na příštích 14 dní</div>
   <div class="top-day-selector" id="topDaySelector"></div>
+</div>
+
+<div id="boardSearchWrapper" style="max-width:1000px; margin:10px auto 0; padding:0 16px;">
+  <input 
+    type="text" 
+    id="boardSearchInput" 
+    placeholder="Hledat na nástěnce (jméno, auto, EVC, telefon, email, technik…)" 
+    oninput="handleBoardSearchInput(this.value)"
+    style="width:100%; padding:10px 12px; border-radius:12px; border:1px solid #ccd2dd; font-size:14px;">
 </div>
 
 <!-- ✅ Archivní kalendář – 30 dní zpět -->
@@ -975,6 +1016,36 @@ let changingControl = false;
 let lastSavedId = null;
 let activeFilterDate = null;
 let currentView = 'board'; // 'board' nebo 'archive'
+let boardSearchQuery = "";
+let boardSearchTimer = null;
+
+function handleBoardSearchInput(value) {
+  boardSearchQuery = value.toLowerCase();
+
+  clearTimeout(boardSearchTimer);
+  boardSearchTimer = setTimeout(() => {
+    renderReservations();
+  }, 120);
+}
+
+function matchesBoardSearch(r) {
+  if (!boardSearchQuery) return true;
+
+  const fields = [
+    r.name,
+    r.phone,
+    r.email,
+    r.car,
+    String(r.evc),
+    r.date,
+    r.time,
+    r.technician || "",
+    r.controlTechnician || ""
+  ];
+
+  const haystack = fields.join(" ").toLowerCase();
+  return haystack.includes(boardSearchQuery);
+}
 
 function getReservations() {
   const list = JSON.parse(localStorage.getItem('reservations') || '[]');
@@ -1078,8 +1149,8 @@ function renderArchiveCalendar() {
   const counts = getArchiveCountsLast30Days();
 
   const today = new Date();
-  // generujeme od dnes - 29 po dnes
-  for (let offset = 29; offset >= 0; offset--) {
+ // generujeme od dnes - 30 po dnes - 1 (dnešek se NEzobrazuje)
+for (let offset = 30; offset >= 1; offset--) {
     const d = new Date();
     d.setDate(today.getDate() - offset);
 
@@ -1087,8 +1158,8 @@ function renderArchiveCalendar() {
     const weekday = ['Ne','Po','Út','St','Čt','Pá','So'][d.getDay()];
 
     const btn = document.createElement('div');
-btn.style.setProperty('--i', 29 - offset);
-btn.style.setProperty('--rev-i', offset);
+    btn.style.setProperty('--i', 29 - offset);
+    btn.style.setProperty('--rev-i', offset);
     btn.className = 'archive-day-btn';
     btn.dataset.date = iso;
 
@@ -1142,15 +1213,21 @@ function switchView(view) {
       activeFilterDate = null;
       archiveSearchQuery = "";
     }
-  }
 
-// ✅ Reset vizuálního výběru dne POUZE při přechodu z archivu na nástěnku
-if (currentView !== view && view === 'board') {
-    document.querySelectorAll('.top-day-btn').forEach(btn => {
-        btn.classList.remove('top-selected');
-    });
+    if (view === 'board') {
+  boardSearchQuery = "";
+  const input = document.getElementById('boardSearchInput');
+  if (input) input.value = "";
 }
 
+  }
+
+  // ✅ Reset vizuálního výběru dne POUZE při přechodu z archivu na nástěnku
+  if (currentView !== view && view === 'board') {
+    document.querySelectorAll('.top-day-btn').forEach(btn => {
+      btn.classList.remove('top-selected');
+    });
+  }
 
   currentView = view;
 
@@ -1181,6 +1258,9 @@ if (currentView !== view && view === 'board') {
   document.querySelector('.top-calendar-wrapper').style.display =
     view === 'board' ? 'block' : 'none';
 
+document.getElementById('boardSearchWrapper').style.display =
+  view === 'board' ? 'block' : 'none';
+
   const archiveWrapper = document.getElementById('archiveCalendarWrapper');
   if (archiveWrapper) {
     archiveWrapper.style.display = (view === 'archive') ? 'block' : 'none';
@@ -1195,6 +1275,11 @@ if (currentView !== view && view === 'board') {
 
 function openCreateModal() {
   editId = null;
+// ✅ vyčistit vyhledávání při otevření modalu
+boardSearchQuery = "";
+const input = document.getElementById('boardSearchInput');
+if (input) input.value = "";
+renderReservations();
   pendingSaveData = null;
   selectingForCreation = false;
   changingControl = false;
@@ -1492,29 +1577,29 @@ function saveReservation() {
 function finalizeSave(data) {
   let list = getReservations();
   if (editId) {
-  list = list.map(function(r){
-    if (r.id === editId) {
-      return Object.assign(
-        {
-          id: editId,
-          createdAt: r.createdAt || Date.now(),
-          archived: r.archived || false
-        },
-        data
-      );
-    }
-    return r;
-  });
-  lastSavedId = editId;
-} else {
-  const newId = Date.now().toString();
-  list.push(Object.assign({
-    id: newId,
-    createdAt: Date.now(),
-    archived: false
-  }, data));
-  lastSavedId = newId;
-}
+    list = list.map(function(r){
+      if (r.id === editId) {
+        return Object.assign(
+          {
+            id: editId,
+            createdAt: r.createdAt || Date.now(),
+            archived: r.archived || false
+          },
+          data
+        );
+      }
+      return r;
+    });
+    lastSavedId = editId;
+  } else {
+    const newId = Date.now().toString();
+    list.push(Object.assign({
+      id: newId,
+      createdAt: Date.now(),
+      archived: false
+    }, data));
+    lastSavedId = newId;
+  }
   setReservations(list);
   renderReservations();
   closeModal();
@@ -1553,9 +1638,14 @@ function selectTechnician(name) {
 
 function deleteCard(id) {
   if (!confirm('Opravdu chceš smazat tuto kartu?')) return;
-  let list = getReservations().filter(function(r){return r.id !== id;});
+
+  let list = getReservations().filter(function(r){
+    return r.id !== id;
+  });
+
   setReservations(list);
   renderReservations();
+  updateSwitchCounts();   // ✅ doplněno – aktualizace počítadel po smazání
 }
 
 function toggleControl(id) {
@@ -1680,7 +1770,7 @@ function renderReservations() {
   const container = document.getElementById('cardsContainer');
   container.innerHTML = '';
   autoArchiveOldReservations();
-cleanupOldReservations();
+  cleanupOldReservations();
   let list = getReservations();
   // ✅ Rozdělení dat podle zobrazení
   if (currentView === 'board') {
@@ -1691,10 +1781,15 @@ cleanupOldReservations();
     list = list.filter(r => r.archived);
   }
 
-// ✅ vyhledávání jen v archivu
-if (currentView === 'archive') {
-  list = list.filter(matchesArchiveSearch);
+  // ✅ vyhledávání jen v archivu
+  if (currentView === 'archive') {
+    list = list.filter(matchesArchiveSearch);
+  }
+
+if (currentView === 'board') {
+  list = list.filter(matchesBoardSearch);
 }
+
   list.sort(function(a,b){
     return (a.date + a.time).localeCompare(b.date + b.time);
   });
@@ -1702,55 +1797,52 @@ if (currentView === 'archive') {
     list = list.filter(function(r){return r.date === activeFilterDate;});
   }
   // počítáme duplicity GLOBÁLNĚ, ne podle filtru
-const all = getReservations();
-const evcCounts = {};
+  const all = getReservations();
+  const evcCounts = {};
 
-all.forEach(function(r){
-  // 🔹 ignoruj archivované karty pro logiku duplicit na nástěnce
-  if (r.archived) return;
+  all.forEach(function(r){
+    // 🔹 ignoruj archivované karty pro logiku duplicit na nástěnce
+    if (r.archived) return;
 
-  if (!r.evc && r.evc !== 0) return;
-  evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
-});
+    if (!r.evc && r.evc !== 0) return;
+    evcCounts[r.evc] = (evcCounts[r.evc] || 0) + 1;
+  });
   // ✅ Musíme použít celý seznam, ne filtrovaný
 
-const evcControl = {};
+  const evcControl = {};
 
-all.forEach(function(r){
-  if (!r.archived && r.evc && r.checked && r.controlTechnician) {
-    evcControl[r.evc] = r.controlTechnician;
-  }
-});
+  all.forEach(function(r){
+    if (!r.archived && r.evc && r.checked && r.controlTechnician) {
+      evcControl[r.evc] = r.controlTechnician;
+    }
+  });
 
   list.forEach(function(r){
 
-if (currentView === 'archive') {
-  const mini = document.createElement('div');
-  mini.className = 'archive-mini-card';
-  mini.dataset.id = r.id;
+    if (currentView === 'archive') {
+      const mini = document.createElement('div');
+      mini.className = 'archive-mini-card';
+      mini.dataset.id = r.id;
 
-  mini.innerHTML = `
-    <div class="archive-mini-left">
-      <div class="archive-mini-time">${formatDayMonth(r.date)}</div>
-      <div class="archive-mini-name">${r.name}</div>
-      <div class="archive-mini-name">${r.car}</div>
-    </div>
-    <div class="archive-mini-evc">EVC ${r.evc}</div>
-  `;
+      mini.innerHTML = `
+        <div class="archive-mini-left">
+          <div class="archive-mini-time">${formatDayMonth(r.date)}</div>
+          <div class="archive-mini-name">${r.name}</div>
+          <div class="archive-mini-name">${r.car}</div>
+        </div>
+        <div class="archive-mini-evc">EVC ${r.evc}</div>
+      `;
 
-  mini.onclick = function() {
-    toggleArchiveExpanded(r.id);
-  };
+      mini.onclick = function() {
+        toggleArchiveExpanded(r.id);
+      };
 
-  container.appendChild(mini);
-  return; // ✅ přeskočíme velkou kartu
-}
+      container.appendChild(mini);
+      return; // ✅ přeskočíme velkou kartu
+    }
 
     const card = document.createElement('div');
     card.className = 'card';
-if (currentView === 'archive') {
-  card.classList.add('archive-card');
-}
     card.dataset.id = r.id;
     card.dataset.evc = r.evc;
 
@@ -1766,29 +1858,29 @@ if (currentView === 'archive') {
       '<label class="check-wrapper"><input type="checkbox"><span>Kontrola provedena</span></label>';
 
     let isDuplicate = false;
-let dupColor = null;
+    let dupColor = null;
 
-if (currentView === 'board') {
-  isDuplicate = r.evc && evcCounts[r.evc] > 1;
-  dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
-}
+    if (currentView === 'board') {
+      isDuplicate = r.evc && evcCounts[r.evc] > 1;
+      dupColor = isDuplicate ? getColorForEvc(r.evc) : null;
+    }
 
-if (isDuplicate){
-  // ✅ světlejší duplicitní barva pro pozadí karty
-  const start = dupColor.replace('hsl','hsla').replace(')',',0.18)');
-  const mid   = dupColor.replace('hsl','hsla').replace(')',',0.08)');
+    if (isDuplicate){
+      // ✅ světlejší duplicitní barva pro pozadí karty
+      const start = dupColor.replace('hsl','hsla').replace(')',',0.09)');
+      const mid   = dupColor.replace('hsl','hsla').replace(')',',0.0)');
 
-  card.style.setProperty('--dup-bg-color-start', start);
-  card.style.setProperty('--dup-bg-color-mid', mid);
+      card.style.setProperty('--dup-bg-color-start', start);
+      card.style.setProperty('--dup-bg-color-mid', mid);
 
-  card.classList.add('card-duplicate-bg');
-}
+      card.classList.add('card-duplicate-bg');
+    }
     let stripColor = '';
     if (isChecked && isDuplicate) {
       stripColor = 'linear-gradient(to bottom,' 
-  + dupColor + ' 1%,' 
-  + dupColor + ' 10%,' 
-  + '#4caf50 30%)';
+        + dupColor + ' 1%,' 
+        + dupColor + ' 10%,' 
+        + '#4caf50 30%)';
 
     } else if (isChecked) {
       stripColor = '#4caf50';
@@ -1827,11 +1919,11 @@ if (isDuplicate){
       badgeHTML +
       '<div class="card-info">' + infoHtml + '</div>' +
       '<div class="actions">' +
-  '<div class="actions-row">' +
-    '<button class="icon-btn edit-btn">✏️</button>' +
-    '<button class="icon-btn delete-btn">🗑️</button>' +
-  '</div>' +
-'</div>';
+        '<div class="actions-row">' +
+          '<button class="icon-btn edit-btn">✏️</button>' +
+          '<button class="icon-btn delete-btn">🗑️</button>' +
+        '</div>' +
+      '</div>';
 
     if (!isChecked) {
       const cb = card.querySelector("input[type='checkbox']");
@@ -1841,23 +1933,32 @@ if (isDuplicate){
     card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
 
     if (currentView === 'board' && isDuplicate) {
-  card.addEventListener('mouseenter', function(){
-    document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
-      c.classList.add('duplicate-hover');
-    });
-  });
-  card.addEventListener('mouseleave', function(){
-    document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
-      c.classList.remove('duplicate-hover');
-    });
-  });
-}
+      card.addEventListener('mouseenter', function(){
+        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+          c.classList.add('duplicate-hover');
+        });
+      });
+      card.addEventListener('mouseleave', function(){
+        document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
+          c.classList.remove('duplicate-hover');
+        });
+      });
+    }
 
     container.appendChild(card);
   });
 
   updateDayBadges();
   updateFilterInfo();
+}
+
+function updateSwitchCounts() {
+  const list = getReservations();
+  const board = list.filter(r => !r.archived).length;
+  const archive = list.filter(r => r.archived).length;
+
+  document.getElementById('boardCount').textContent = board;
+  document.getElementById('archiveCount').textContent = archive;
 }
 
 const daySelector = document.getElementById('daySelector');
@@ -1870,7 +1971,7 @@ function generateDays(count) {
     const d = new Date();
     d.setDate(today.getDate() + totalDaysGenerated);
     const btn = document.createElement('div');
-btn.style.setProperty('--i', totalDaysGenerated);
+    btn.style.setProperty('--i', totalDaysGenerated);
     btn.className = 'day-btn';
     btn.dataset.date = d.toISOString().split('T')[0];
     btn.innerHTML = days[d.getDay()] + '<br><strong>' + formatDayMonth(d.toISOString().split("T")[0]) + '</strong>';
@@ -1896,7 +1997,7 @@ function generateTopDays(count) {
     const d = new Date();
     d.setDate(today.getDate() + topDaysGenerated);
     const btn = document.createElement('div');
-btn.style.setProperty('--i', topDaysGenerated);
+    btn.style.setProperty('--i', topDaysGenerated);
     btn.className = 'top-day-btn';
     btn.dataset.date = d.toISOString().split('T')[0];
     btn.innerHTML = days[d.getDay()] + '<br><strong>' + formatDayMonth(d.toISOString().split("T")[0]) + '</strong>';
@@ -1911,7 +2012,8 @@ btn.style.setProperty('--i', topDaysGenerated);
         btn.classList.add('top-selected');
       }
       renderReservations();
-switchView('board');
+      updateSwitchCounts();   // ✅ doplněno
+      switchView('board');
     };
     topDaySelector.appendChild(btn);
     topDaysGenerated++;
@@ -1921,14 +2023,17 @@ switchView('board');
 
 generateTopDays(14);
 
-
 document.getElementById('phoneInput').addEventListener('blur', validatePhoneImmediate);
 document.getElementById('prefix').addEventListener('change', function(){
   document.getElementById('phoneInput').classList.remove('input-error');
 });
 document.getElementById('evcInput').addEventListener('blur', validateEvcDuplicateImmediate);
 
-renderReservations();
+// ✅ Defaultní stav po načtení – aktivní Nástěnka
+window.addEventListener('DOMContentLoaded', () => {
+  switchView('board');
+  updateSwitchCounts();   // ✅ doplněno
+});
 </script>
 
 </body>
