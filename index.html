@@ -902,13 +902,14 @@ input:focus,select:focus{
   <div class="top-day-selector" id="topDaySelector"></div>
 </div>
 
-<div class="filter-info" id="filterInfo" style="display:none;">
-  Filtrováno podle dne: <strong id="filterLabel"></strong> – kliknutím na stejný den filtr zrušíš.
-</div>
 <!-- ✅ Archivní kalendář – 30 dní zpět -->
 <div id="archiveCalendarWrapper" style="display:none; max-width:1000px; margin:10px auto 0; padding:0 16px;">
   <div class="top-calendar-label">Archiv posledních 30 dní</div>
   <div class="archive-day-selector" id="archiveDaySelector"></div>
+</div>
+
+<div class="filter-info" id="filterInfo" style="display:none;">
+  Filtrováno podle dne: <strong id="filterLabel"></strong> – kliknutím na stejný den filtr zrušíš.
 </div>
 
 <!-- ✅ Vyhledávání až POD kalendářem -->
@@ -1129,11 +1130,29 @@ function highlightArchiveSelected() {
 }
 
 function switchView(view) {
-  currentView = view;
 
-  // ✅ při přepnutí mezi nástěnkou a archivem MUSÍME zrušit filtry
-  activeFilterDate = null;      // zruší filtr dne
-  archiveSearchQuery = "";      // zruší vyhledávání v archivu
+  // ✅ Reset filtrů pouze při PŘECHODU mezi režimy
+  if (currentView !== view) {
+    if (view === 'archive') {
+      // odcházím z nástěnky → reset dne
+      activeFilterDate = null;
+    }
+    if (view === 'board') {
+      // odcházím z archivu → reset dne + vyhledávání
+      activeFilterDate = null;
+      archiveSearchQuery = "";
+    }
+  }
+
+// ✅ Reset vizuálního výběru dne POUZE při přechodu z archivu na nástěnku
+if (currentView !== view && view === 'board') {
+    document.querySelectorAll('.top-day-btn').forEach(btn => {
+        btn.classList.remove('top-selected');
+    });
+}
+
+
+  currentView = view;
 
   const topCal = document.getElementById('topDaySelector');
   const archiveCal = document.getElementById('archiveDaySelector');
@@ -1148,7 +1167,6 @@ function switchView(view) {
   if (view === 'archive') {
     archiveCal.classList.add('calendar-animate-right');
 
-    // ✅ slider hned na pravou stranu
     setTimeout(() => {
       archiveCal.scrollLeft = archiveCal.scrollWidth;
     }, 20);
@@ -1157,15 +1175,12 @@ function switchView(view) {
   document.getElementById('viewBoardBtn').classList.toggle('active', view === 'board');
   document.getElementById('viewArchiveBtn').classList.toggle('active', view === 'archive');
 
-  // ✅ vyhledávání jen v archivu
   document.getElementById('archiveSearchWrapper').style.display =
     view === 'archive' ? 'block' : 'none';
 
-  // ✅ nahoře kalendář jen pro nástěnku
   document.querySelector('.top-calendar-wrapper').style.display =
     view === 'board' ? 'block' : 'none';
 
-  // ✅ šedý archivní kalendář jen v archivu
   const archiveWrapper = document.getElementById('archiveCalendarWrapper');
   if (archiveWrapper) {
     archiveWrapper.style.display = (view === 'archive') ? 'block' : 'none';
