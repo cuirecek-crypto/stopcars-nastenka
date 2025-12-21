@@ -1014,14 +1014,14 @@ function formatDateShort(dateStr) {
 
 // ✅ 8 jasně odlišných barev pro duplicity (bez zelené, bez šedé)
 const DUPLICATE_COLORS = [
-  "#994b4b",
-  "#99774b",
-  "#99994b",
-  "#4b9999",
-  "#4b4f99",
-  "#7c4b99",
-  "#994b90",
-  "#994b6d"
+  "#FF6B6B",
+  "#FFA94D",
+  "#FFD43B",
+  "#4DABF7",
+  "#74C0FC",
+  "#9775FA",
+  "#F06595",
+  "#FAB005"
 ];
 
 const usedDuplicateColors = new Map();
@@ -1130,24 +1130,30 @@ function highlightArchiveSelected() {
 
 function switchView(view) {
   currentView = view;
-const topCal = document.getElementById('topDaySelector');
-const archiveCal = document.getElementById('archiveDaySelector');
 
-topCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
-archiveCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
+  // ✅ při přepnutí mezi nástěnkou a archivem MUSÍME zrušit filtry
+  activeFilterDate = null;      // zruší filtr dne
+  archiveSearchQuery = "";      // zruší vyhledávání v archivu
 
-if (view === 'board') {
-  topCal.classList.add('calendar-animate-left');
-}
+  const topCal = document.getElementById('topDaySelector');
+  const archiveCal = document.getElementById('archiveDaySelector');
 
-if (view === 'archive') {
-  archiveCal.classList.add('calendar-animate-right');
+  topCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
+  archiveCal.classList.remove('calendar-animate-left', 'calendar-animate-right');
 
-  // ✅ slider hned na pravou stranu
-  setTimeout(() => {
-    archiveCal.scrollLeft = archiveCal.scrollWidth;
-  }, 20);
-}
+  if (view === 'board') {
+    topCal.classList.add('calendar-animate-left');
+  }
+
+  if (view === 'archive') {
+    archiveCal.classList.add('calendar-animate-right');
+
+    // ✅ slider hned na pravou stranu
+    setTimeout(() => {
+      archiveCal.scrollLeft = archiveCal.scrollWidth;
+    }, 20);
+  }
+
   document.getElementById('viewBoardBtn').classList.toggle('active', view === 'board');
   document.getElementById('viewArchiveBtn').classList.toggle('active', view === 'archive');
 
