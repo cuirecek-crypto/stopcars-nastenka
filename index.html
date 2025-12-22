@@ -969,7 +969,21 @@ input:focus,select:focus{
   <div class="modal">
     <h2 id="modalTitle">Nová rezervace</h2>
     <div class="day-selector" id="daySelector"></div>
-    <input type="time" id="timeInput">
+    <select id="timeInput">
+  <option value="">Vyber čas</option>
+  <option value="08:00">08:00</option>
+  <option value="09:00">09:00</option>
+  <option value="10:00">10:00</option>
+  <option value="11:00">11:00</option>
+  <option value="12:00">12:00</option>
+  <option value="13:00">13:00</option>
+  <option value="14:00">14:00</option>
+  <option value="15:00">15:00</option>
+  <option value="16:00">16:00</option>
+  <option value="17:00">17:00</option>
+  <option value="18:00">18:00</option>
+  <option value="19:00">19:00</option>
+</select>
     <input type="text" id="nameInput" placeholder="Jméno zákazníka">
     <div class="phone-row">
       <select id="prefix">
@@ -1018,6 +1032,28 @@ let activeFilterDate = null;
 let currentView = 'board'; // 'board' nebo 'archive'
 let boardSearchQuery = "";
 let boardSearchTimer = null;
+
+function getActiveSearchQuery() {
+  if (currentView === 'board') {
+    return boardSearchQuery.trim();
+  }
+  if (currentView === 'archive') {
+    return archiveSearchQuery.trim();
+  }
+  return "";
+}
+
+function highlight(text) {
+  const q = getActiveSearchQuery();
+  if (!q) return text;
+
+  const safe = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(safe, "gi");
+
+  return text.replace(regex, match =>
+    `<strong style="color:#d60000;">${match}</strong>`
+  );
+}
 
 function handleBoardSearchInput(value) {
   boardSearchQuery = value.toLowerCase();
@@ -1274,24 +1310,38 @@ document.getElementById('boardSearchWrapper').style.display =
 }
 
 function openCreateModal() {
+  // pokud nejsme na nástěnce, přepneme se na ni
+  if (currentView !== 'board') {
+    switchView('board'); // to samo resetuje archiveSearchQuery a aktivní den
+  } else {
+    // jsme už na nástěnce → vyčistíme vyhledávání
+    boardSearchQuery = "";
+    const input = document.getElementById('boardSearchInput');
+    if (input) input.value = "";
+    renderReservations();
+  }
+
   editId = null;
-// ✅ vyčistit vyhledávání při otevření modalu
-boardSearchQuery = "";
-const input = document.getElementById('boardSearchInput');
-if (input) input.value = "";
-renderReservations();
   pendingSaveData = null;
   selectingForCreation = false;
   changingControl = false;
+
   document.getElementById('modalTitle').innerText = 'Nová rezervace';
   document.getElementById('modal').style.display = 'flex';
+
   document.querySelectorAll('#modal input').forEach(function(i){
     i.value = '';
     i.classList.remove('input-error');
   });
+
   document.getElementById('prefix').value = '+420';
-  document.querySelectorAll('#daySelector .day-btn').forEach(function(b){ b.classList.remove('selected'); });
+
+  document.querySelectorAll('#daySelector .day-btn').forEach(function(b){
+    b.classList.remove('selected');
+  });
+
   document.getElementById('editControlRow').innerHTML = '';
+
   if (activeFilterDate) {
     var btn = document.querySelector('#daySelector .day-btn[data-date="' + activeFilterDate + '"]');
     if (btn) btn.classList.add('selected');
@@ -1438,21 +1488,21 @@ function toggleArchiveExpanded(id) {
   // ✅ Přepnout minikartu na velkou archivní kartu
   el.className = 'archive-expanded-card archive-expand-anim';
   el.innerHTML = `
-    <div class="archive-expanded-title">${formatDayMonth(r.date)} ${r.time}</div>
+  <div class="archive-expanded-title">${highlight(formatDayMonth(r.date) + ' ' + r.time)}</div>
 
-    <div class="archive-expanded-line">👤 ${r.name}</div>
-    <div class="archive-expanded-line">📞 ${r.prefix} ${r.phone}</div>
-    ${r.email ? `<div class="archive-expanded-line">✉️ ${r.email}</div>` : ''}
-    <div class="archive-expanded-line">🚗 ${r.car}</div>
-    <div class="archive-expanded-line">Evidenční číslo: <strong>${r.evc}</strong></div>
+  <div class="archive-expanded-line">👤 ${highlight(r.name)}</div>
+  <div class="archive-expanded-line">📞 ${r.prefix} ${highlight(r.phone)}</div>
+  ${r.email ? `<div class="archive-expanded-line">✉️ ${highlight(r.email)}</div>` : '' }
+  <div class="archive-expanded-line">🚗 ${highlight(r.car)}</div>
+  <div class="archive-expanded-line">Evidenční číslo: <strong>${r.evc ? highlight(String(r.evc)) : '---'}</strong></div>
 
-    <div class="archive-expanded-line">📝 Kartu vytvořil: <strong>${r.technician || '—'}</strong></div>
-    <div class="archive-expanded-line">✅ Kontrolu provedl: <strong>${r.controlTechnician || '—'}</strong></div>
+  <div class="archive-expanded-line">📝 Kartu vytvořil: <strong>${highlight(r.technician || '—')}</strong></div>
+  <div class="archive-expanded-line">✅ Kontrolu provedl: <strong>${highlight(r.controlTechnician || '—')}</strong></div>
 
-    <div class="archive-expanded-close">
-      <button type="button" class="archive-close-btn">Zavřít</button>
-    </div>
-  `;
+  <div class="archive-expanded-close">
+    <button type="button" class="archive-close-btn">Zavřít</button>
+  </div>
+`;
 
   // ✅ expanded karta NESMÍ reagovat na kliknutí
   el.onclick = null;
@@ -1521,7 +1571,7 @@ function validateEvcDuplicateImmediate() {
 
 function validateForm(data) {
   const phoneLengths = {'+420':9,'+421':9,'+43':10,'+49':10,'+36':9,'+370':8};
-  if (!data.date || !data.time || !data.name || !data.car || isNaN(data.evc)) {
+  if (!data.date || !data.time || !data.name || !data.car) {
     alert('Vyplň datum, čas, jméno, vozidlo a evidenční číslo.');
     return false;
   }
@@ -1533,10 +1583,10 @@ function validateForm(data) {
     alert('E‑mail musí obsahovat "@" a ".".');
     return false;
   }
-  if (data.evc < 1 || data.evc > 250) {
-    alert('Evidenční číslo musí být 1–250.');
-    return false;
-  }
+  if (data.evc && (data.evc < 1 || data.evc > 250)) {
+  alert('Evidenční číslo musí být 1–250.');
+  return false;
+}
   return true;
 }
 
@@ -1544,19 +1594,30 @@ function saveReservation() {
   const selectedDay = document.querySelector('#daySelector .day-btn.selected');
   const date = selectedDay ? selectedDay.dataset.date : '';
   const old = editId ? getReservations().find(function(r){return r.id === editId;}) : {};
-  const data = {
-    date: date,
-    time: document.getElementById('timeInput').value,
-    name: document.getElementById('nameInput').value.trim(),
-    prefix: document.getElementById('prefix').value,
-    phone: document.getElementById('phoneInput').value.trim(),
-    email: document.getElementById('emailInput').value.trim(),
-    car: document.getElementById('carInput').value.trim(),
-    evc: parseInt(document.getElementById('evcInput').value.trim(),10),
-    checked: old && old.checked || false,
-    technician: old && old.technician || null,
-    controlTechnician: old && old.controlTechnician || null
-  };
+  const rawTime = document.getElementById('timeInput').value;
+let normalizedTime = rawTime;
+
+if (rawTime) {
+  const parts = rawTime.split(':');
+  const h = (parts[0] || '00').padStart(2, '0');
+  normalizedTime = h + ':00';
+}
+
+const data = {
+  date: date,
+  time: normalizedTime,
+  name: document.getElementById('nameInput').value.trim(),
+  prefix: document.getElementById('prefix').value,
+  phone: document.getElementById('phoneInput').value.trim(),
+  email: document.getElementById('emailInput').value.trim(),
+  car: document.getElementById('carInput').value.trim(),
+  evc: document.getElementById('evcInput').value.trim()
+      ? parseInt(document.getElementById('evcInput').value.trim(),10)
+      : null,
+  checked: old && old.checked || false,
+  technician: old && old.technician || null,
+  controlTechnician: old && old.controlTechnician || null
+};
   if (!validateForm(data)) return;
   const list = getReservations();
   const duplicate = list.find(function(r){return r.evc === data.evc && r.id !== editId;});
@@ -1825,13 +1886,13 @@ if (currentView === 'board') {
       mini.dataset.id = r.id;
 
       mini.innerHTML = `
-        <div class="archive-mini-left">
-          <div class="archive-mini-time">${formatDayMonth(r.date)}</div>
-          <div class="archive-mini-name">${r.name}</div>
-          <div class="archive-mini-name">${r.car}</div>
-        </div>
-        <div class="archive-mini-evc">EVC ${r.evc}</div>
-      `;
+  <div class="archive-mini-left">
+    <div class="archive-mini-time">${highlight(formatDayMonth(r.date))}</div>
+    <div class="archive-mini-name">${highlight(r.name)}</div>
+    <div class="archive-mini-name">${highlight(r.car)}</div>
+  </div>
+  <div class="archive-mini-evc">EVC ${r.evc ? highlight(String(r.evc)) : '---'}</div>
+`;
 
       mini.onclick = function() {
         toggleArchiveExpanded(r.id);
@@ -1897,21 +1958,25 @@ if (currentView === 'board') {
         '⚠ DUPLICITA (EVC ' + r.evc + ' • ' + evcCounts[r.evc] + '×)</div>'
       : '';
 
-    var emailLine = r.email ? '✉️ ' + r.email + '<br>' : '';
-    var techLine = r.technician ? '<br><br>📝 Kartu vytvořil: <strong>' + r.technician + '</strong>' : '';
-    var controlNameToShow = groupTech || r.controlTechnician || '';
-    var controlLine = controlNameToShow ? '<br>✅ Kontrolu provedl: <strong>' + controlNameToShow + '</strong>' : '';
+var emailLine = r.email ? '✉️ ' + highlight(r.email) + '<br>' : '';
+var techLine = r.technician
+  ? '<br><br>📝 Kartu vytvořil: <strong>' + highlight(r.technician) + '</strong>'
+  : '';
+var controlNameToShow = groupTech || r.controlTechnician || '';
+var controlLine = controlNameToShow
+  ? '<br>✅ Kontrolu provedl: <strong>' + highlight(controlNameToShow) + '</strong>'
+  : '';
 
-    var infoHtml =
-      '<strong>📅 ' + formattedDate + '</strong><br>' +
-      '👤 ' + r.name + '<br>' +
-      '📞 ' + r.prefix + ' ' + r.phone + '<br>' +
-      emailLine +
-      '🚗 ' + r.car + '<br>' +
-      'Evidenční číslo: <strong>' + r.evc + '</strong>' +
-      techLine +
-      controlLine +
-      checkboxHTML;
+var infoHtml =
+  '<strong>📅 ' + highlight(formattedDate) + '</strong><br>' +
+  '👤 ' + highlight(r.name) + '<br>' +
+  '📞 ' + r.prefix + ' ' + highlight(r.phone) + '<br>' +
+  emailLine +
+  '🚗 ' + highlight(r.car) + '<br>' +
+  'Evidenční číslo: <strong>' + (r.evc ? highlight(String(r.evc)) : '---') + '</strong>' +
+  techLine +
+  controlLine +
+  checkboxHTML;    
 
     card.innerHTML =
       stripHTML +
