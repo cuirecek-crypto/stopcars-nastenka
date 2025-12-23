@@ -6,6 +6,51 @@
 <title>Rezervační nástěnka</title>
 <style>
 
+.connection-dot {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 99999;
+  transition: background .25s ease, box-shadow .25s ease;
+}
+
+/* Zelená – online */
+.connection-dot-online {
+  background: #2ecc71;
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+}
+
+/* Červená – offline */
+.connection-dot-offline {
+  background: #e74c3c;
+  box-shadow: 0 0 8px rgba(231, 76, 60, 0.6);
+}
+
+/* Modrá – synchronizace */
+.connection-dot-sync {
+  background: #3498db;
+  box-shadow: 0 0 8px rgba(52, 152, 219, 0.6);
+}
+
+/* Blikání modré tečky při synchronizaci */
+@keyframes sync-blink {
+  0%   { opacity: 1; }
+  50%  { opacity: 0.35; }
+  100% { opacity: 1; }
+}
+
+.connection-dot-sync {
+  animation: sync-blink 1.2s infinite ease-in-out;
+}
+
+.toast-persistent {
+  pointer-events: auto;
+}
+
 .view-switch {
   display: flex;
   gap: 40px;
@@ -662,12 +707,28 @@ input:focus,select:focus{
 /* toast notifikace */
 #toastContainer {
   position: fixed;
-  bottom: 16px;
-  right: 16px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   z-index: 9999;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
+  pointer-events: none; /* toasty neblokují klikání mimo */
+}
+
+.toast {
+  background: rgba(20, 20, 20, 0.94);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  animation: fadeUp 0.25s ease-out;
+  pointer-events: auto; /* ale toast sám může mít tlačítka */
+  text-align: center;
+  max-width: 260px;
 }
 
 .toast {
@@ -678,6 +739,11 @@ input:focus,select:focus{
   font-size: 13px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.35);
   animation: fadeUp 0.25s ease-out;
+}
+
+.toast-success {
+  /* použij stejnou zelenou, jako u kontroly rezervace */
+  background: #4caf50;
 }
 
 .filter-info strong{font-weight:600;}
@@ -943,7 +1009,7 @@ input:focus,select:focus{
 </head>
 
 <body>
-
+<div id="connectionDot" class="connection-dot connection-dot-online"></div>
 <div class="topbar">
   <div class="logo-wrap">
     <img src="https://www.stopcars.cz/wp-content/uploads/2024/08/stop_cars-logo_ok.svg" alt="StopCars logo">
@@ -1069,12 +1135,18 @@ let currentView = 'board'; // 'board' nebo 'archive'
 let boardSearchQuery = "";
 let boardSearchTimer = null;
 
-function showToast(message, duration = 2200) {
+function showToast(message, duration = 2200, type = 'default') {
   const container = document.getElementById('toastContainer');
   if (!container) return;
 
   const toast = document.createElement('div');
-  toast.className = 'toast';
+
+  let extraClass = '';
+  if (type === 'success') {
+    extraClass = ' toast-success';
+  }
+
+  toast.className = 'toast' + extraClass;
   toast.textContent = message;
 
   container.appendChild(toast);
@@ -1086,6 +1158,81 @@ function showToast(message, duration = 2200) {
       toast.remove();
     }, 250);
   }, duration);
+}
+
+function showPersistentToast(message, type = 'default') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-persistent';
+
+  // barvy podle typu
+  if (type === 'success') toast.style.background = '#2ecc71';
+  if (type === 'error') toast.style.background = '#e74c3c';
+  if (type === 'info') toast.style.background = '#3498db';
+
+  toast.innerHTML = `
+    <div style="margin-bottom:10px;">${message}</div>
+    <button style="
+      padding:6px 12px;
+      border:none;
+      border-radius:8px;
+      background:#fff;
+      color:#333;
+      cursor:pointer;
+      font-weight:600;
+    ">OK</button>
+  `;
+
+  container.appendChild(toast);
+
+  toast.querySelector('button').onclick = () => {
+    toast.remove();
+  };
+}
+
+function showConfirmToast(message, onConfirm, onCancel) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+
+  toast.innerHTML = `
+    <div style="margin-bottom:10px;">${message}</div>
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button id="toastYes" style="
+        padding:6px 12px;
+        border:none;
+        border-radius:8px;
+        background:#2b7cff;
+        color:#fff;
+        cursor:pointer;
+      ">Ano</button>
+
+      <button id="toastNo" style="
+        padding:6px 12px;
+        border:none;
+        border-radius:8px;
+        background:#777;
+        color:#fff;
+        cursor:pointer;
+      ">Ne</button>
+    </div>
+  `;
+
+  container.appendChild(toast);
+
+  document.getElementById('toastYes').onclick = () => {
+    toast.remove();
+    if (onConfirm) onConfirm();
+  };
+
+  document.getElementById('toastNo').onclick = () => {
+    toast.remove();
+    if (onCancel) onCancel();
+  };
 }
 
 function copyToClipboard(text, successMessage) {
@@ -1166,6 +1313,95 @@ function matchesBoardSearch(r) {
   const haystack = fields.join(" ").toLowerCase();
   return haystack.includes(boardSearchQuery);
 }
+
+function updateConnectionDot(state) {
+  const dot = document.getElementById('connectionDot');
+  if (!dot) return;
+
+  dot.classList.remove('connection-dot-online', 'connection-dot-offline', 'connection-dot-sync');
+
+  if (state === 'online') dot.classList.add('connection-dot-online');
+  if (state === 'offline') dot.classList.add('connection-dot-offline');
+  if (state === 'sync') dot.classList.add('connection-dot-sync');
+}
+
+function startSyncVisual() {
+  updateConnectionDot('sync');
+}
+
+// Hlavní synchronizační funkce (zatím jen vizuální)
+async function runSyncProcess() {
+  // 1) zapneme modrou tečku
+  startSyncVisual();
+
+  // 2) simulace synchronizace (později nahradíme reálným API)
+  await new Promise(resolve => setTimeout(resolve, 1500));
+
+  // 3) po dokončení vrátíme tečku na zelenou
+  updateConnectionDot('online');
+}
+
+function setSyncState() {
+  updateConnectionDot('sync');
+}
+
+function showSyncStatus() {
+  updateConnectionDot('sync');
+  showPersistentToast(
+    'Probíhá synchronizace se serverem…',
+    'info'
+  );
+}
+
+// Online / Offline eventy
+window.addEventListener('online', () => {
+  updateConnectionDot('online');
+  showPersistentToast(
+    'Jste online. Data se ukládají přímo na server.',
+    'success'
+  );
+});
+
+
+window.addEventListener('offline', () => {
+  updateConnectionDot('offline');
+  showPersistentToast(
+    'Jste offline. Data se ukládají do zařízení a budou synchronizována později.',
+    'error'
+  );
+});
+
+// Při načtení stránky nastavíme výchozí stav
+window.addEventListener('DOMContentLoaded', () => {
+  updateConnectionDot(navigator.onLine ? 'online' : 'offline');
+});
+
+// Kliknutí na tečku → vysvětlení stavu
+document.addEventListener('DOMContentLoaded', () => {
+  const dot = document.getElementById('connectionDot');
+  if (!dot) return;
+
+  dot.addEventListener('click', () => {
+    if (dot.classList.contains('connection-dot-online')) {
+      showPersistentToast(
+        'Online: data se ukládají přímo na server.',
+        'success'
+      );
+    } 
+    else if (dot.classList.contains('connection-dot-offline')) {
+      showPersistentToast(
+        'Offline: data se ukládají do zařízení a budou synchronizována později.',
+        'error'
+      );
+    } 
+    else if (dot.classList.contains('connection-dot-sync')) {
+      showPersistentToast(
+        'Probíhá synchronizace se serverem…',
+        'info'
+      );
+    }
+  });
+});
 
 function getReservations() {
   const list = JSON.parse(localStorage.getItem('reservations') || '[]');
@@ -1664,9 +1900,49 @@ function validatePhoneImmediate() {
   const expected = phoneLengths[prefix];
   if (phone.length !== expected) {
     phoneInput.classList.add('input-error');
-    alert('Telefonní číslo má mít ' + expected + ' číslic.');
+    showToast('Telefonní číslo má mít ' + expected + ' číslic.');
   }
 }
+
+function validateEmailImmediate(showToastOnError) {
+  const emailInput = document.getElementById('emailInput');
+  const email = emailInput.value.trim();
+
+  // zrušíme případný starý error
+  emailInput.classList.remove('input-error');
+
+  // prázdný email je povolen → nic neřešíme
+  if (!email) return;
+
+  // základní pravidla:
+  // - obsahuje @ a .
+  // - @ není na začátku
+  // - . je až za @
+  // - . není na konci
+  // - není @. ani .@
+  const atIndex = email.indexOf('@');
+  const lastDotIndex = email.lastIndexOf('.');
+
+  let valid = true;
+
+  if (atIndex <= 0) {
+    valid = false;
+  } else if (lastDotIndex <= atIndex + 1) {
+    valid = false;
+  } else if (lastDotIndex === email.length - 1) {
+    valid = false;
+  } else if (email.includes('@.') || email.includes('.@')) {
+    valid = false;
+  }
+
+  if (!valid) {
+    emailInput.classList.add('input-error');
+    if (showToastOnError) {
+      showToast('E‑mail musí obsahovat správně umístěné "@" a ".".');
+    }
+  }
+}
+
 
 function cleanupOldReservations() {
   const list = getReservations();
@@ -1698,8 +1974,10 @@ function validateEvcDuplicateImmediate() {
 
 function validateForm(data) {
   const phoneLengths = {'+420':9,'+421':9,'+43':10,'+49':10,'+36':9,'+370':8};
+
+  // EVC už není povinné → kontrolujeme jen datum, čas, jméno, auto
   if (!data.date || !data.time || !data.name || !data.car) {
-    alert('Vyplň datum, čas, jméno, vozidlo a evidenční číslo.');
+    showToast('Vyplň datum, čas, jméno, telefon a vozidlo.');
     return false;
   }
   if (data.phone.length !== phoneLengths[data.prefix]) {
@@ -1707,11 +1985,11 @@ function validateForm(data) {
     return false;
   }
   if (data.email && (data.email.indexOf('@')===-1 || data.email.indexOf('.')===-1)) {
-    alert('E‑mail musí obsahovat "@" a ".".');
+    showToast('E‑mail musí obsahovat "@" a ".".');
     return false;
   }
   if (data.evc && (data.evc < 1 || data.evc > 250)) {
-  alert('Evidenční číslo musí být 1–250.');
+  showToast('Evidenční číslo musí být 1–250.');
   return false;
 }
   return true;
@@ -1749,7 +2027,7 @@ const data = {
   const list = getReservations();
   const duplicate = list.find(function(r){return r.evc === data.evc && r.id !== editId;});
   if (duplicate) {
-    alert('Pozor: toto evidenční číslo je již na nástěnce. Ukládání je povoleno.');
+    showToast('Pozor: toto evidenční číslo je již na nástěnce. Ukládání je povoleno.');
   }
   pendingSaveData = data;
   if (editId) {
@@ -1839,15 +2117,19 @@ function selectTechnician(name) {
 }
 
 function deleteCard(id) {
-  if (!confirm('Opravdu chceš smazat tuto kartu?')) return;
-
-  let list = getReservations().filter(function(r){
-    return r.id !== id;
-  });
-
-  setReservations(list);
-  renderReservations();
-  updateSwitchCounts();   // ✅ doplněno – aktualizace počítadel po smazání
+  showConfirmToast(
+    'Opravdu chceš smazat tuto kartu?',
+    () => {
+      let list = getReservations().filter(r => r.id !== id);
+      setReservations(list);
+      renderReservations();
+      updateSwitchCounts();
+      showToast('Karta byla smazána.');
+    },
+    () => {
+      showToast('Mazání zrušeno.');
+    }
+  );
 }
 
 function toggleControl(id) {
@@ -2209,6 +2491,23 @@ function updateSwitchCounts() {
   document.getElementById('archiveCount').textContent = archive;
 }
 
+function checkDailyCleanupInfo() {
+  try {
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    const lastShown = localStorage.getItem('lastCleanupInfoDate');
+
+    if (lastShown !== todayStr) {
+      // nový den → ukážeme zelený toast
+      showToast('Nástěnka i Archiv byly aktualizovány.', 2600, 'success');
+      localStorage.setItem('lastCleanupInfoDate', todayStr);
+    }
+  } catch (e) {
+    // když localStorage není k dispozici, prostě nic
+  }
+}
+
 const daySelector = document.getElementById('daySelector');
 const days = ['Ne','Po','Út','St','Čt','Pá','So'];
 let totalDaysGenerated = 0;
@@ -2271,11 +2570,23 @@ function generateTopDays(count) {
 
 generateTopDays(14);
 
+// 🔔 Informace o denní aktualizaci
+checkDailyCleanupInfo();
+
 document.getElementById('phoneInput').addEventListener('blur', validatePhoneImmediate);
 document.getElementById('prefix').addEventListener('change', function(){
   document.getElementById('phoneInput').classList.remove('input-error');
 });
 document.getElementById('evcInput').addEventListener('blur', validateEvcDuplicateImmediate);
+
+const emailInputEl = document.getElementById('emailInput');
+emailInputEl.addEventListener('blur', function () {
+  validateEmailImmediate(true);   // při opuštění pole – včetně toastu
+});
+emailInputEl.addEventListener('input', function () {
+  validateEmailImmediate(false);  // při psaní – jen červený rámeček, bez toastu
+});
+
 
 // ✅ Defaultní stav po načtení – aktivní Nástěnka
 window.addEventListener('DOMContentLoaded', () => {
