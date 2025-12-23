@@ -646,6 +646,40 @@ input:focus,select:focus{
   font-size:13px;
   opacity:.7;
 }
+
+/* klikatelné prvky (telefon/email) */
+.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.clickable:hover {
+  opacity: 0.8;
+}
+
+/* toast notifikace */
+#toastContainer {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: rgba(20, 20, 20, 0.94);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  animation: fadeUp 0.25s ease-out;
+}
+
 .filter-info strong{font-weight:600;}
 
 .day-selector{
@@ -1022,6 +1056,8 @@ input:focus,select:focus{
   </div>
 </div>
 
+<div id="toastContainer"></div>
+
 <script>
 let editId = null;
 let pendingSaveData = null;
@@ -1032,6 +1068,54 @@ let activeFilterDate = null;
 let currentView = 'board'; // 'board' nebo 'archive'
 let boardSearchQuery = "";
 let boardSearchTimer = null;
+
+function showToast(message, duration = 2200) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = message;
+
+  container.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateY(10px)';
+    setTimeout(() => {
+      toast.remove();
+    }, 250);
+  }, duration);
+}
+
+function copyToClipboard(text, successMessage) {
+  if (!text) return;
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        showToast(successMessage || 'Zkopírováno do schránky.');
+      })
+      .catch(() => {
+        showToast('Nepodařilo se zkopírovat.', 2500);
+      });
+  } else {
+    // fallback
+    const temp = document.createElement('textarea');
+    temp.value = text;
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    document.body.appendChild(temp);
+    temp.select();
+    try {
+      document.execCommand('copy');
+      showToast(successMessage || 'Zkopírováno do schránky.');
+    } catch (e) {
+      showToast('Nepodařilo se zkopírovat.', 2500);
+    }
+    document.body.removeChild(temp);
+  }
+}
 
 function getActiveSearchQuery() {
   if (currentView === 'board') {
@@ -1491,8 +1575,17 @@ function toggleArchiveExpanded(id) {
   <div class="archive-expanded-title">${highlight(formatDayMonth(r.date) + ' ' + r.time)}</div>
 
   <div class="archive-expanded-line">👤 ${highlight(r.name)}</div>
-  <div class="archive-expanded-line">📞 ${r.prefix} ${highlight(r.phone)}</div>
-  ${r.email ? `<div class="archive-expanded-line">✉️ ${highlight(r.email)}</div>` : '' }
+  <div class="archive-expanded-line">
+    📞 <span class="clickable archive-phone-click" data-phone="${r.prefix} ${r.phone}">
+      ${r.prefix} ${highlight(r.phone)}
+    </span>
+  </div>
+  ${r.email ? `
+    <div class="archive-expanded-line">
+      ✉️ <span class="clickable archive-email-click" data-email="${r.email}">
+        ${highlight(r.email)}
+      </span>
+    </div>` : '' }
   <div class="archive-expanded-line">🚗 ${highlight(r.car)}</div>
   <div class="archive-expanded-line">Evidenční číslo: <strong>${r.evc ? highlight(String(r.evc)) : '---'}</strong></div>
 
@@ -1505,14 +1598,48 @@ function toggleArchiveExpanded(id) {
 `;
 
   // ✅ expanded karta NESMÍ reagovat na kliknutí
-  el.onclick = null;
+el.onclick = null;
 
-  // ✅ zavírací tlačítko
-  const closeBtn = el.querySelector('.archive-close-btn');
-  closeBtn.addEventListener('click', function(e) {
+// telefon v expanded kartě – mobil = volání, PC = kopírování
+const expPhoneEl = el.querySelector('.archive-phone-click');
+if (expPhoneEl) {
+  expPhoneEl.addEventListener('click', function (e) {
     e.stopPropagation();
-    toggleArchiveExpanded(id);
+    const raw = expPhoneEl.dataset.phone || '';
+    const normalized = raw.replace(/\s+/g, '');
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      if (normalized) {
+        window.location.href = 'tel:' + normalized;
+      }
+    } else {
+      if (normalized) {
+        copyToClipboard(normalized, 'Telefonní číslo zkopírováno do schránky.');
+      }
+    }
   });
+}
+
+// email v expanded kartě
+const expEmailEl = el.querySelector('.archive-email-click');
+if (expEmailEl) {
+  expEmailEl.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const email = expEmailEl.dataset.email || '';
+    if (email) {
+      copyToClipboard(email, 'E‑mail zkopírován do schránky.');
+    }
+  });
+}
+
+// ✅ zavírací tlačítko
+const closeBtn = el.querySelector('.archive-close-btn');
+closeBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleArchiveExpanded(id);
+});
 }
 
 function startChangeControl(id) {
@@ -1664,6 +1791,20 @@ function finalizeSave(data) {
   setReservations(list);
   renderReservations();
   closeModal();
+
+// SMART SCROLL – posun uložené karty doprostřed obrazovky
+setTimeout(() => {
+  if (!lastSavedId) return;
+
+  const card = document.querySelector('.card[data-id="' + lastSavedId + '"]');
+  if (card) {
+    card.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  }
+}, 80);
+
   setTimeout(function(){ lastSavedId = null; }, 1500);
 }
 
@@ -1958,10 +2099,16 @@ if (currentView === 'board') {
         '⚠ DUPLICITA (EVC ' + r.evc + ' • ' + evcCounts[r.evc] + '×)</div>'
       : '';
 
-var emailLine = r.email ? '✉️ ' + highlight(r.email) + '<br>' : '';
+var emailLine = r.email
+  ? '✉️ <span class="clickable email-click" data-email="' + r.email + '">' +
+      highlight(r.email) +
+    '</span><br>'
+  : '';
+
 var techLine = r.technician
   ? '<br><br>📝 Kartu vytvořil: <strong>' + highlight(r.technician) + '</strong>'
   : '';
+
 var controlNameToShow = groupTech || r.controlTechnician || '';
 var controlLine = controlNameToShow
   ? '<br>✅ Kontrolu provedl: <strong>' + highlight(controlNameToShow) + '</strong>'
@@ -1970,7 +2117,9 @@ var controlLine = controlNameToShow
 var infoHtml =
   '<strong>📅 ' + highlight(formattedDate) + '</strong><br>' +
   '👤 ' + highlight(r.name) + '<br>' +
-  '📞 ' + r.prefix + ' ' + highlight(r.phone) + '<br>' +
+  '📞 <span class="clickable phone-click" data-phone="' + (r.prefix + ' ' + r.phone) + '">' +
+      r.prefix + ' ' + highlight(r.phone) +
+    '</span><br>' +
   emailLine +
   '🚗 ' + highlight(r.car) + '<br>' +
   'Evidenční číslo: <strong>' + (r.evc ? highlight(String(r.evc)) : '---') + '</strong>' +
@@ -1979,23 +2128,57 @@ var infoHtml =
   checkboxHTML;    
 
     card.innerHTML =
-      stripHTML +
-      dotHTML +
-      badgeHTML +
-      '<div class="card-info">' + infoHtml + '</div>' +
-      '<div class="actions">' +
-        '<div class="actions-row">' +
-          '<button class="icon-btn edit-btn">✏️</button>' +
-          '<button class="icon-btn delete-btn">🗑️</button>' +
-        '</div>' +
-      '</div>';
+  stripHTML +
+  dotHTML +
+  badgeHTML +
+  '<div class="card-info">' + infoHtml + '</div>' +
+  '<div class="actions">' +
+    '<div class="actions-row">' +
+      '<button class="icon-btn edit-btn">✏️</button>' +
+      '<button class="icon-btn delete-btn">🗑️</button>' +
+    '</div>' +
+  '</div>';
 
-    if (!isChecked) {
-      const cb = card.querySelector("input[type='checkbox']");
-      if (cb) cb.addEventListener('change', function(){ toggleControl(r.id); });
+// telefon – mobil = volání, PC = kopírování
+const phoneEl = card.querySelector('.phone-click');
+if (phoneEl) {
+  phoneEl.addEventListener('click', function () {
+    const raw = phoneEl.dataset.phone || '';
+    const normalized = raw.replace(/\s+/g, '');
+
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      // mobil → volání
+      if (normalized) {
+        window.location.href = 'tel:' + normalized;
+      }
+    } else {
+      // počítač → kopírování
+      if (normalized) {
+        copyToClipboard(normalized, 'Telefonní číslo zkopírováno do schránky.');
+      }
     }
-    card.querySelector('.edit-btn').onclick = function(){ openEditModal(r.id); };
-    card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
+  });
+}
+
+// email – klik = kopírování do schránky
+const emailEl = card.querySelector('.email-click');
+if (emailEl) {
+  emailEl.addEventListener('click', function () {
+    const email = emailEl.dataset.email || '';
+    if (email) {
+      copyToClipboard(email, 'E‑mail zkopírován do schránky.');
+    }
+  });
+}
+
+if (!isChecked) {
+  const cb = card.querySelector("input[type='checkbox']");
+  if (cb) cb.addEventListener('change', function(){ toggleControl(r.id); });
+}
+card.querySelector('.edit-btn').onclick = function(){ openEditModal(r.id); };
+card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
 
     if (currentView === 'board' && isDuplicate) {
       card.addEventListener('mouseenter', function(){
