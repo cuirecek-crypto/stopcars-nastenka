@@ -1699,36 +1699,48 @@ document.getElementById('boardSearchWrapper').style.display =
 function openCreateModal() {
   // pokud nejsme na nástěnce, přepneme se na ni
   if (currentView !== 'board') {
-    switchView('board'); // to samo resetuje archiveSearchQuery a aktivní den
+    switchView('board');
   } else {
-    // jsme už na nástěnce → vyčistíme vyhledávání
     boardSearchQuery = "";
     const input = document.getElementById('boardSearchInput');
     if (input) input.value = "";
     renderReservations();
   }
 
+  // ČISTÝ START
   editId = null;
-  pendingSaveData = null;
-  selectingForCreation = false;
+  pendingSaveData = {};
+  selectingForCreation = true;
   changingControl = false;
 
+  // Otevřít modal
   document.getElementById('modalTitle').innerText = 'Nová rezervace';
   document.getElementById('modal').style.display = 'flex';
 
+  // HLAVNÍ FIX — VYČISTIT INPUTY
+  document.getElementById('timeInput').value = '';
+  document.getElementById('nameInput').value = '';
+  document.getElementById('prefix').value = '+420';
+  document.getElementById('phoneInput').value = '';
+  document.getElementById('emailInput').value = '';
+  document.getElementById('carInput').value = '';
+  document.getElementById('evcInput').value = '';
+  document.getElementById('noteInput').value = '';
+
+  // Odstranit error classy
   document.querySelectorAll('#modal input').forEach(function(i){
-    i.value = '';
     i.classList.remove('input-error');
   });
 
-  document.getElementById('prefix').value = '+420';
-
+  // Reset výběru dne
   document.querySelectorAll('#daySelector .day-btn').forEach(function(b){
     b.classList.remove('selected');
   });
 
+  // Vyčistit kontrolního technika
   document.getElementById('editControlRow').innerHTML = '';
 
+  // Pokud je aktivní filtr dne, předvybereme ho
   if (activeFilterDate) {
     var btn = document.querySelector('#daySelector .day-btn[data-date="' + activeFilterDate + '"]');
     if (btn) btn.classList.add('selected');
