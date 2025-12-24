@@ -18,6 +18,7 @@
   transition: background .25s ease, box-shadow .25s ease;
 }
 
+
 /* Zelená – online */
 .connection-dot-online {
   background: #2ecc71;
@@ -594,6 +595,47 @@ html, body {
   color:#2b7cff;
 }
 
+.note-inline {
+  width: 100%;
+  min-height: 36px;
+  max-height: 120px;
+  border-radius: 10px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  background: #fafafa;
+  font-size: 14px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+  font-family: inherit;
+  outline: none;
+
+  white-space: normal;          /* běžné zalamování */
+  overflow-wrap: break-word;    /* zalamuj dlouhá slova */
+  word-break: break-word;       /* fallback pro starší prohlížeče */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Placeholder */
+.note-inline:empty::before {
+  content: "Poznámka";
+  color: #999;
+  pointer-events: none;
+}
+
+/* Placeholder */
+.note-inline:empty::before {
+  content: "Poznámka";
+  color: #999;
+  pointer-events: none;
+}
+
+.note-inline mark {
+  background: #ff4d4d;   /* červené podbarvení */
+  color: inherit;        /* text zůstane stejný */
+  padding: 0;
+}
+
 .modal-bg{
   display:none;
   position:fixed;
@@ -1100,6 +1142,23 @@ input:focus,select:focus{
     <input type="text" id="carInput" placeholder="Vozidlo">
     <input type="number" id="evcInput" min="1" max="250" placeholder="Evidenční číslo (1–250)">
     <div id="editControlRow" style="margin-bottom:6px;"></div>
+
+<textarea 
+  id="noteInput" 
+  placeholder="Poznámka (nepovinné)" 
+  style="
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #d5d9e0;
+    background: rgba(250,251,252,.95);
+    font-size: 14px;
+    margin-bottom: 10px;
+  "
+></textarea>
+
     <div class="btn-row">
       <button class="btn-close" onclick="closeModal()">Zavřít</button>
       <button class="btn-primary" onclick="saveReservation()">Uložit</button>
@@ -1134,6 +1193,7 @@ let activeFilterDate = null;
 let currentView = 'board'; // 'board' nebo 'archive'
 let boardSearchQuery = "";
 let boardSearchTimer = null;
+let isEditingNote = false;
 
 function showToast(message, duration = 2200, type = 'default') {
   const container = document.getElementById('toastContainer');
@@ -1264,6 +1324,12 @@ function copyToClipboard(text, successMessage) {
   }
 }
 
+function autoResizeTextarea(el) {
+  if (!el) return; // ochrana
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
 function getActiveSearchQuery() {
   if (currentView === 'board') {
     return boardSearchQuery.trim();
@@ -1307,7 +1373,8 @@ function matchesBoardSearch(r) {
     r.date,
     r.time,
     r.technician || "",
-    r.controlTechnician || ""
+    r.controlTechnician || "",
+r.note || "",
   ];
 
   const haystack = fields.join(" ").toLowerCase();
@@ -1684,6 +1751,7 @@ function openEditModal(id) {
   document.getElementById('emailInput').value = r.email;
   document.getElementById('carInput').value = r.car;
   document.getElementById('evcInput').value = r.evc;
+document.getElementById('noteInput').value = r.note || '';
   document.querySelectorAll('#modal input').forEach(function(i){ i.classList.remove('input-error'); });
   document.querySelectorAll('#daySelector .day-btn').forEach(function(b){
     b.classList.toggle('selected', b.dataset.date === r.date);
@@ -1744,7 +1812,8 @@ function matchesArchiveSearch(r) {
     r.car,
     String(r.evc),
     r.date,
-    r.time
+    r.time,
+r.note || ""
   ];
 
   // ignorujeme techniky
@@ -1943,6 +2012,13 @@ function validateEmailImmediate(showToastOnError) {
   }
 }
 
+function convertUrlsToLinks(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  return text.replace(urlRegex, function(url) {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">ODKAZ</a>`;
+  });
+}
 
 function cleanupOldReservations() {
   const list = getReservations();
@@ -2008,6 +2084,19 @@ if (rawTime) {
   normalizedTime = h + ':00';
 }
 
+let noteSaveTimers = {};
+
+function saveNoteInline(id, text) {
+  const list = getReservations();
+  const updated = list.map(r => {
+    if (r.id === id) {
+      r.note = text;
+    }
+    return r;
+  });
+  setReservations(updated);
+}
+
 const data = {
   date: date,
   time: normalizedTime,
@@ -2019,6 +2108,7 @@ const data = {
   evc: document.getElementById('evcInput').value.trim()
       ? parseInt(document.getElementById('evcInput').value.trim(),10)
       : null,
+note: document.getElementById('noteInput').value.trim(),
   checked: old && old.checked || false,
   technician: old && old.technician || null,
   controlTechnician: old && old.controlTechnician || null
@@ -2250,6 +2340,19 @@ function updateFilterInfo() {
   }
 }
 
+let noteSaveTimers = {};
+
+function saveNoteInline(id, text) {
+  const list = getReservations();
+  const updated = list.map(r => {
+    if (r.id === id) {
+      r.note = text;
+    }
+    return r;
+  });
+  setReservations(updated);
+}
+
 function renderReservations() {
   const container = document.getElementById('cardsContainer');
   container.innerHTML = '';
@@ -2409,11 +2512,24 @@ var infoHtml =
   controlLine +
   checkboxHTML;    
 
-    card.innerHTML =
+  card.innerHTML =
   stripHTML +
   dotHTML +
   badgeHTML +
   '<div class="card-info">' + infoHtml + '</div>' +
+
+  // 🔵 NOVÁ VERZE INLINE POZNÁMKY — contenteditable místo textarea
+  '<div class="note-inline" contenteditable="true" data-id="' + r.id + '">' +
+    (r.note || '') +
+  '</div>' +
+
+  '<div class="actions">' +
+    '<div class="actions-row">' +
+      '<button class="icon-btn edit-btn">✏️</button>' +
+      '<button class="icon-btn delete-btn">🗑️</button>' +
+    '</div>' +
+  '</div>';
+
   '<div class="actions">' +
     '<div class="actions-row">' +
       '<button class="icon-btn edit-btn">✏️</button>' +
@@ -2462,6 +2578,34 @@ if (!isChecked) {
 card.querySelector('.edit-btn').onclick = function(){ openEditModal(r.id); };
 card.querySelector('.delete-btn').onclick = function(){ deleteCard(r.id); };
 
+const noteField = card.querySelector('.note-inline');
+
+if (noteField) {
+  const id = noteField.dataset.id;
+
+  // Inicializace zvýraznění při renderu
+  if (!isEditingNote) {
+  updateNoteHighlight(noteField, boardSearchQuery);
+}
+
+  noteField.addEventListener('input', function () {
+  isEditingNote = true;
+
+  // 🔥 Pokud je poznámka prázdná → vyčisti element úplně
+  if (this.innerText.trim() === "") {
+    this.innerHTML = "";   // tím se aktivuje :empty → placeholder se zobrazí
+  }
+
+  const text = this.innerText;
+
+  clearTimeout(noteSaveTimers[id]);
+  noteSaveTimers[id] = setTimeout(() => {
+    saveNoteInline(id, text);
+    isEditingNote = false;
+  }, 300);
+});
+}
+
     if (currentView === 'board' && isDuplicate) {
       card.addEventListener('mouseenter', function(){
         document.querySelectorAll('.card[data-evc="' + r.evc + '"]').forEach(function(c){
@@ -2489,6 +2633,20 @@ function updateSwitchCounts() {
 
   document.getElementById('boardCount').textContent = board;
   document.getElementById('archiveCount').textContent = archive;
+}
+
+function updateNoteHighlight(el, query) {
+  const text = el.innerText;
+
+  if (!query) {
+    el.innerHTML = text;
+    return;
+  }
+
+  const regex = new RegExp(`(${query})`, "gi");
+  const highlighted = text.replace(regex, "<mark>$1</mark>");
+
+  el.innerHTML = highlighted;
 }
 
 function checkDailyCleanupInfo() {
